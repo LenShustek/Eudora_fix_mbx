@@ -1,0 +1,33 @@
+;translations.txt for common UTF-8 codes and other stuff
+E28098 = "'"   ;left single quote
+E28099 = "'"   ;right single quote
+E2808B = ""    ;zero-width space
+EFBBBF = ""    ;"byte order mark", another zero-width space
+E280A2 = "o"   ;bullet
+E280A3 = ">"   ;triangular bullet
+E28183 = "-"   ;hyphen bullet
+E280A6 = "..." ;horizontal ellipsis
+E28092 = "-"   ;figure dash
+E28093 = "-"   ;En dash
+96     = "-"   ;En dash in extended ASCII
+E28094 = "--"  ;Em dash
+97     = "-"   ;Em dash in extended ASCII
+E28080 = " "   ;En quad
+E28081 = "  "  ;Em quad
+E2809C = '"'   ;left double quote
+E2809D = '"'   ;right double quote
+e29d99 = "|"   ;vertical bar
+C2A0 = " "     ;non-breaking space
+C2A9 = "c"     ;copyright sign
+C2AB =  "<"    ;left pointing double angle quotes
+C2BB =  ">"    ;right pointing double angle quotes
+C2BF =  "?"    ;inverted question mark
+c3a9 =  "e"    ;e-acute
+c3bc =  "u"    ;u-umlaut
+!0d 0a !0d = * 0d * ; change isolated linefeeds to carriage return
+;I *thought* what's below fixes the problem with replied-to Outlook messages
+;having extra line spacing, but apparently it doesn't. At least not always.
+;It's commented out until we come up with something better.
+;"<o:p></o:p>" = "<p></p>"  ;replace Outlook crud
+;"<o:p>" = ""   ;remove Outlook crud
+;"</o:p>" = ""  ;remove Outlook crud
