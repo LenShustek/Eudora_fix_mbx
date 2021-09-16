@@ -8,7 +8,7 @@ Eudora mailbox in ways like this:
     so Eudora will move to a new line and not squash everything together
   - change Outlook-generated non-standard HTML into something Eudora deals correctly with
 
-This needs to be run when Eudora is not running, and there is a runtime check to ensure that.
+This should only be run when Eudora is not running, and there is a runtime check to ensure that.
 
 All of the modifications are made to mailbox data without changing the size of the messages
 or the mailbox.  In addition, the corresponding table-of-contents file (.toc) file has its
