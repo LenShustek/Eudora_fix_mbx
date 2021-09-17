@@ -1,0 +1,157 @@
+;translations_ASCII.txt: a file for the Eudora_fix_mbx program that describes replacements
+;  for common UTF-8 codes and other sequences that Eudora doesn't display correctly.
+;This version translates into only the standard ASCII characters from hex 00 to hex 7F, which
+;  makes some of the replacements fairly cryptic. To use it, rename it to translations.txt.
+;For a version that translates into the Windows-1252 extended ASCII character set,
+;  which Eudora does seem to display correctly, use the supplied translations.txt.
+
+;UTF-8 hex codes corresponding to Windows-1252 codes 80 to 9F
+;see https://www.i18nqa.com/debug/table-iso8859-1-vs-windows-1252.html
+E282AC = 'E'   ;Euro Sign
+E2809A = "'"   ;Single Low-9 Quotation Mark
+C692   = 'f'   ;Latin Small Letter F With Hook
+E2809E = '"'   ;Double Low-9 Quotation Mark
+E280A6 = "..." ;Horizontal Ellipsis
+E280A0 = 't'   ;Dagger
+E280A1 = 't'   ;Double Dagger
+CB86   = '^'   ;Modifier Letter Circumflex Accent
+E280B0 = '%'   ;Per Mille Sign
+C5A0   = 'S'   ;Latin Capital Letter S With Caron
+E280B9 = '<'   ;Single Left-Pointing Angle Quotation Mark
+C592   = 'OE'  ;Latin Capital Ligature OE
+C5BD   = 'Z'   ;Latin Capital Letter Z With Caron
+E28098 = "'"   ;Left Single Quotation Mark
+E28099 = "'"   ;Right Single Quotation Mark
+E2809C = '"'   ;Left Double Quotation Mark
+E2809D = '"'   ;Right Double Quotation Mark
+E280A2 = '.'   ;Bullet
+E28093 = '-'   ;En Dash 
+E28094 = '-'   ;Em Dash
+CB9C   = '~'   ;Small Tilde
+E284A2 = 'tm'  ;Trade Mark Sign
+C5A1   = 's'   ;Latin Small Letter S With Caron
+E280BA = '>'   ;Single Right-Pointing Angle Quotation Mark
+C593   = 'oe'  ;Latin Small Ligature OE
+C5BE   = 'z'   ;Latin Small Letter Z With Caron
+C5B8   = 'Y'   ;Latin Capital Letter Y With Diaeresis
+
+;UTF-8 hex codes from U+00A0 to U+00FF, which map into Windows-1252 codes A0 to FF
+;See https://www.utf8-chartable.de/
+C2A0 = ' '   ;NO-BREAK SPACE
+C2A1 = '!'   ;INVERTED EXCLAMATION MARK
+C2A2 = 'c'   ;CENT SIGN
+C2A3 = 'L'   ;POUND SIGN
+C2A4 = 'O'   ;CURRENCY SIGN
+C2A5 = 'Y'   ;YEN SIGN
+C2A6 = '|'   ;BROKEN BAR
+C2A7 = 'S'   ;SECTION SIGN
+C2A8 = ':'   ;DIAERESIS
+C2A9 = 'c'   ;COPYRIGHT SIGN
+C2AA = 'a'   ;FEMININE ORDINAL INDICATOR
+C2AB = '<'   ;LEFT-POINTING DOUBLE ANGLE QUOTATION MARK
+C2AC = '~'   ;NOT SIGN
+C2AD = '-'   ;SOFT HYPHEN
+C2AE = 'R'   ;REGISTERED SIGN
+C2AF = '-'   ;MACRON
+C2B0 = 'o'   ;DEGREE SIGN
+C2B1 = '+-'  ;PLUS-MINUS SIGN
+C2B2 = '2'   ;SUPERSCRIPT TWO
+C2B3 = '3'   ;SUPERSCRIPT THREE
+C2B4 = '`'   ;ACUTE ACCENT
+C2B5 = 'u'   ;MICRO SIGN
+C2B6 = 'P'   ;PILCROW SIGN
+C2B7 = '.'   ;MIDDLE DOT
+C2B8 = ','   ;CEDILLA
+C2B9 = '1'   ;SUPERSCRIPT ONE
+C2BA = 'o'   ;MASCULINE ORDINAL INDICATOR
+C2BB = '>'   ;RIGHT-POINTING DOUBLE ANGLE QUOTATION MARK
+C2BC = '/4'  ;VULGAR FRACTION ONE QUARTER
+C2BD = '/2'  ;VULGAR FRACTION ONE HALF
+C2BE = '34'   ;VULGAR FRACTION THREE QUARTERS
+C2BF = '?'   ;INVERTED QUESTION MARK
+C380 = 'A'   ;LATIN CAPITAL LETTER A WITH GRAVE
+C381 = 'A'   ;LATIN CAPITAL LETTER A WITH ACUTE
+C382 = 'A'   ;LATIN CAPITAL LETTER A WITH CIRCUMFLEX ***risky
+C383 = 'A'   ;LATIN CAPITAL LETTER A WITH TILDE ***risky
+C384 = 'A'   ;LATIN CAPITAL LETTER A WITH DIAERESIS
+C385 = 'A'   ;LATIN CAPITAL LETTER A WITH RING ABOVE
+C386 = 'AE'  ;LATIN CAPITAL LETTER AE
+C387 = 'C'   ;LATIN CAPITAL LETTER C WITH CEDILLA
+C388 = 'E'   ;LATIN CAPITAL LETTER E WITH GRAVE
+C389 = 'E'   ;LATIN CAPITAL LETTER E WITH ACUTE
+C38A = 'E'   ;LATIN CAPITAL LETTER E WITH CIRCUMFLEX
+C38B = 'E'   ;LATIN CAPITAL LETTER E WITH DIAERESIS
+C38C = 'I'   ;LATIN CAPITAL LETTER I WITH GRAVE
+C38D = 'I'   ;LATIN CAPITAL LETTER I WITH ACUTE
+C38E = 'I'   ;LATIN CAPITAL LETTER I WITH CIRCUMFLEX
+C38F = 'I'   ;LATIN CAPITAL LETTER I WITH DIAERESIS
+C390 = 'D'   ;LATIN CAPITAL LETTER ETH
+C391 = 'N'   ;LATIN CAPITAL LETTER N WITH TILDE
+C392 = 'O'   ;LATIN CAPITAL LETTER O WITH GRAVE
+C393 = 'O'   ;LATIN CAPITAL LETTER O WITH ACUTE
+C394 = 'O'   ;LATIN CAPITAL LETTER O WITH CIRCUMFLEX
+C395 = 'O'   ;LATIN CAPITAL LETTER O WITH TILDE
+C396 = 'O'   ;LATIN CAPITAL LETTER O WITH DIAERESIS
+C397 = 'x'   ;MULTIPLICATION SIGN
+C398 = 'O'   ;LATIN CAPITAL LETTER O WITH STROKE
+C399 = 'U'   ;LATIN CAPITAL LETTER U WITH GRAVE
+C39A = 'U'   ;LATIN CAPITAL LETTER U WITH ACUTE
+C39B = 'U'   ;LATIN CAPITAL LETTER U WITH CIRCUMFLEX
+C39C = 'U'   ;LATIN CAPITAL LETTER U WITH DIAERESIS
+C39D = 'Y'   ;LATIN CAPITAL LETTER Y WITH ACUTE
+C39E = 'E'   ;LATIN CAPITAL LETTER THORN
+C39F = 'S'   ;LATIN SMALL LETTER SHARP S
+C3A0 = 'a'   ;LATIN SMALL LETTER A WITH GRAVE
+C3A1 = 'a'   ;LATIN SMALL LETTER A WITH ACUTE
+C3A2 = 'a'   ;LATIN SMALL LETTER A WITH CIRCUMFLEX
+C3A3 = 'a'   ;LATIN SMALL LETTER A WITH TILDE
+C3A4 = 'a'   ;LATIN SMALL LETTER A WITH DIAERESIS
+C3A5 = 'a'   ;LATIN SMALL LETTER A WITH RING ABOVE
+C3A6 = 'ae'  ;LATIN SMALL LETTER AE
+C3A7 = 'c'   ;LATIN SMALL LETTER C WITH CEDILLA
+C3A8 = 'e'   ;LATIN SMALL LETTER E WITH GRAVE
+C3A9 = 'e'   ;LATIN SMALL LETTER E WITH ACUTE
+C3AA = 'e'   ;LATIN SMALL LETTER E WITH CIRCUMFLEX
+C3AB = 'e'   ;LATIN SMALL LETTER E WITH DIAERESIS
+C3AC = 'i'   ;LATIN SMALL LETTER I WITH GRAVE
+C3AD = 'i'   ;LATIN SMALL LETTER I WITH ACUTE
+C3AE = 'i'   ;LATIN SMALL LETTER I WITH CIRCUMFLEX
+C3AF = 'i'   ;LATIN SMALL LETTER I WITH DIAERESIS
+C3B0 = 'o'   ;LATIN SMALL LETTER ETH
+C3B1 = 'n'   ;LATIN SMALL LETTER N WITH TILDE
+C3B2 = 'o'   ;LATIN SMALL LETTER O WITH GRAVE
+C3B3 = 'o'   ;LATIN SMALL LETTER O WITH ACUTE
+C3B4 = 'o'   ;LATIN SMALL LETTER O WITH CIRCUMFLEX
+C3B5 = 'o'   ;LATIN SMALL LETTER O WITH TILDE
+C3B6 = 'o'   ;LATIN SMALL LETTER O WITH DIAERESIS
+C3B7 = '/'   ;DIVISION SIGN
+C3B8 = 'o'   ;LATIN SMALL LETTER O WITH STROKE
+C3B9 = 'u'   ;LATIN SMALL LETTER U WITH GRAVE
+C3BA = 'u'   ;LATIN SMALL LETTER U WITH ACUTE
+C3BB = 'u'   ;LATIN SMALL LETTER U WITH CIRCUMFLEX
+C3BC = 'u'   ;LATIN SMALL LETTER U WITH DIAERESIS
+C3BD = 'y'   ;LATIN SMALL LETTER Y WITH ACUTE
+C3BE = 'd'   ;LATIN SMALL LETTER THORN
+C3BF = 'y'   ;LATIN SMALL LETTER Y WITH DIAERESIS
+ 
+;a selection of common 3-byte UTF-8 hex codes not already done
+E28080 = " "     ;En quad
+E28081 = "  "    ;Em quad
+E2808B = ""      ;zero-width space
+E2808C = ""      ;zero-width non-joiner
+E28092 = "-"     ;figure dash
+E280A3 = ">"     ;triangular bullet
+E28183 = "-"     ;hyphen bullet
+E29D99 = "|"     ;vertical bar
+EFBBBF = ""      ;UTF-8 byte order mark
+EFBFBD = "?"     ;replacement character (subsituted for a bad code)
+
+;fix text blocks from being squashed because they contain only naked linefeeds
+!0d 0a !0d = * 0d *      ; change isolated linefeeds to carriage return
+
+;I *thought* what's below fixes the problem with replied-to Outlook messages
+;having extra line spacing, but apparently it doesn't. At least not always.
+;It's commented out until we come up with something better.
+;"<o:p></o:p>" = "<p></p>"  ;replace Outlook crud
+;"<o:p>" = ""   ;remove Outlook crud
+;"</o:p>" = ""  ;remove Outlook crud

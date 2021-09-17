@@ -1,9 +1,11 @@
+
 Eudora_fix_mbx: Repair UTF-8 character codes and problematic HTML in Eudora mailboxes
 
 This is a command-line (non-GUI) Windows program that can modify the data of a
 Eudora mailbox in ways like this:
 
-  - change UTF-8 characters that aren't rendered correctly to related ASCII character(s)
+  - change UTF-8 characters that aren't rendered correctly into related ASCII
+    or extended ASCII (Windows-1252) characters
   - change linefeed characters not adjacent to carriage returns into carriage returns
     so Eudora will move to a new line and not squash everything together
   - change Outlook-generated non-standard HTML into something Eudora deals correctly with
@@ -42,21 +44,26 @@ The rules are:
   - A ; starts a comment
 
   Here are some example translations.txt lines:
-      E28093 = "-"  ;  En dash
-      E28094 = "--" ;  Em dash
-      E2809C = '"'  ;  left double quote
-      E2808B = ""   ;  zero-width space
+      E28093 = "-"  ;En dash
+      E28094 = "--" ;Em dash
+      E2809C = '"'  ;left double quote
+      E2808B = ""   ; zero-width space
+      E282AC = 80   ;Euro Sign in extended ASCII
       !0D 0A !0D = * 0D *  ; replace isolated linefeeds with carriage returns
       "<o:p>" = "<p>"      ; replace Outlook namespace tag with paragraph tag
-  See the accompanying translations.txt file for a suggested starting file.
 
-The program is invoked with a single argument, which is the
-base filename of both the mailbox and table-of-contents files:
+  See the accompanying "translations.txt" file for suggested translations that use
+  the Windows-1252 extended ASCII character set, which Eudora displays correctly. 
+  If you want to only use standard ASCII characters instead, use the 
+  "translations_ASCII.txt" file by renaming it to translations.txt.
 
-      Eudora_fix_mbx In
+The program is invoked with a single argument, which is the base
+filename of both the mailbox and the table-of-contents files:
+
+      Eudora_fix_mbx  In
 
 If the argument ends with ".mbx", it is removed. That allows the program to be run
-by dragging and dropping the mailbox file onto the program's icon. The downside of 
+by dragging and dropping the mailbox file onto the program's icon. The downside of
 doing that is that the status report at the end will disaappear before you can read it.
 But if there is an error, the program will pause until you acknowledge it.
 
