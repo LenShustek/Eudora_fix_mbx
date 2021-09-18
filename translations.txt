@@ -1,8 +1,13 @@
 ;translations.txt: a file for the Eudora_fix_mbx program that describes replacements
-;  for common UTF-8 codes and other sequences that Eudora doesn't display correctly.
-;This version translates into the Windows-1252 "extended ASCII" character set, which
-;  Eudora seems to display correctly. See https://en.wikipedia.org/wiki/Windows-1252.
-;For a version that translates only into standard ASCII, see translations_ASCII.txt.
+;for common UTF-8 codes and other sequences that Eudora doesn't display correctly.
+;This version translates to the Windows-1252 "extended ASCII" character set.
+;See https://en.wikipedia.org/wiki/Windows-1252
+;For a version that translates only into standard ASCII, see translations_ASCII.txt
+
+;But in order to make Eudora display Windows-1252 codes, it can't say charset=UTF-8.
+;So we remove it, which makes me nervous. But it seems to work.
+"charset=UTF-8" = "             "
+"charset=utf-8" = "             "
 
 ;UTF-8 hex codes corresponding to Windows-1252 codes 80 to 9F
 ;see https://www.i18nqa.com/debug/table-iso8859-1-vs-windows-1252.html
