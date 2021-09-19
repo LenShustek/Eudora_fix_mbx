@@ -139,6 +139,7 @@ E28080 = " "     ;En quad
 E28081 = "  "    ;Em quad
 E2808B = ""      ;zero-width space
 E2808C = ""      ;zero-width non-joiner
+E28090 = "-"     ;hyphen
 E28092 = "-"     ;figure dash
 E280A3 = ">"     ;triangular bullet
 E28183 = "-"     ;hyphen bullet
