@@ -75,6 +75,7 @@ doing that is that the status report at the end will disaappear before you can r
 But if there is an error, the program will pause until you acknowledge it.
 
 The translations.txt file is expected to be in the current directory.
+See instructions.txt for one way to install and run the program.
 
 I don't guarantee this will work well for you, so keep a backup
 of the mailbox file in case you don't like what it did!

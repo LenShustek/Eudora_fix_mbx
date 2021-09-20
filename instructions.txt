@@ -1,0 +1,36 @@
+Here is one cookbook way to install and run Eudora_fix_mbx.
+Obviously there are lots of possible variations.
+
+To install:
+
+1. Go to https://github.com/LenShustek/Eudora_fix_mbx.
+   Click on the filename "Eudora_fix_mbx.exe".
+   Click on "Download", which is towards the right.
+   Your goal is to have the file be in the directory with your Eudora mailboxes,
+   which Eudora shows in the "Help" "About Eudora" window after "Data:".
+   * If your browser is set to "ask where to save", 
+     navigate to that directory and click on "Save".
+   * If your browser automatically saves files in some fixed place like "Downloads",
+     you will have to move or copy the file from there to the mailbox directory.
+
+ 2. Go to https://github.com/LenShustek/Eudora_fix_mbx.
+    Click on the filename "translations.txt".
+    Click on "Raw" towards the right.
+    Right click in the window, then click on "Save as..." or "Save page as..."
+    Navigate to the mailbox directory and click on "Save".
+ 
+ 3. Repeat step 2 for the file "fix_mbx.bat"
+ 
+ To run:
+ 
+ 1. Stop Eudora.
+ 
+ 2. Run the Windows File Explorer.
+    Navigate to where your Eudora mailboxes are.
+    Doubleclick on "fix_mbx.bat". 
+    (The ".bat" may not show, depending on what options you have set.)
+    Enter the name of the mailbox you wish to fix, without the .mbx extension.
+    Check for errors, then press space.
+    
+ 3. Restart Eudora.
+ 
