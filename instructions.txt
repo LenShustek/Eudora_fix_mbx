@@ -19,7 +19,8 @@ To install:
     Right click in the window, then click on "Save as..." or "Save page as..."
     Navigate to the mailbox directory and click on "Save".
  
- 3. Repeat step 2 for the file "fix_mbx.bat"
+ 3. Repeat step 2 for the file "fix_mbx.bat", making sure that the 
+    saved file doesn't get ".txt" appended by your browser.
  
  To run:
  
