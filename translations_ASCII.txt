@@ -1,9 +1,19 @@
 ;translations_ASCII.txt: a file for the Eudora_fix_mbx program that describes replacements
-;  for common UTF-8 codes and other sequences that Eudora doesn't display correctly.
+;translations.txt: a file for the Eudora_fix_mbx program that describes replacements
+;for common UTF-8 codes and other sequences that Eudora doesn't display correctly.
+
 ;This version translates into only the standard ASCII characters from hex 00 to hex 7F, which
 ;  makes some of the replacements fairly cryptic. To use it, rename it to translations.txt.
 ;For a version that translates into the Windows-1252 extended ASCII character set,
 ;  which Eudora does seem to display correctly, use the supplied translations.txt.
+
+;Replacements in this file generally apply only to the from, to, and subject lines in the
+;message headers. If you're willing to forgo those, it speeds up processing by about 2x:
+;options skipheaders  ;uncomment this line to not make changes in the headers
+
+;By default we look for replacements in the to/from address list and the subject field
+;in the table-of-contents file. You can choose not do that that:
+;options skiptoc     ;uncomment this line to not make changes in the table-of-contents
 
 ;UTF-8 hex codes corresponding to Windows-1252 codes 80 to 9F
 ;see https://www.i18nqa.com/debug/table-iso8859-1-vs-windows-1252.html
@@ -147,12 +157,11 @@ E29D99 = "|"     ;vertical bar
 EFBBBF = ""      ;UTF-8 byte order mark
 EFBFBD = "?"     ;replacement character (subsituted for a bad code)
 
-;fix text blocks from being squashed because they contain only naked linefeeds
-!0d 0a !0d = * 0d *      ; change isolated linefeeds to carriage return
+Prevent text blocks from being squashed by Eudora because they contain only naked linefeeds.
+!0d 0a !0d = * 0d *    ; change isolated linefeeds to carriage return
 
-;I *thought* what's below fixes the problem with replied-to Outlook messages
-;having extra line spacing, but apparently it doesn't. At least not always.
-;It's commented out until we come up with something better.
-;"<o:p></o:p>" = "<p></p>"  ;replace Outlook crud
-;"<o:p>" = ""   ;remove Outlook crud
-;"</o:p>" = ""  ;remove Outlook crud
+;Fix Outlook-generated messages so Eudora doesn't insert extra blank lines when replying.
+<body> "<p class=MsoNormal>" = "" <setmatch 1>     ;remove Outlook 0-margin paragraphs
+<body> <ifmatch 1> "</p>" = "<br>" <clearmatch 1>  ;and replace with linebreak
+
+;end of translations_ASCII.txt
