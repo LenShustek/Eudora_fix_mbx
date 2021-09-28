@@ -31,7 +31,8 @@ To install:
     Doubleclick on "fix_mbx.bat". 
     (The ".bat" may not show, depending on what options you have set.)
     Enter the name of the mailbox you wish to fix, without the .mbx extension.
-    Check for errors, then press space.
+    (If the name has embedded spaces, enclose it in quotes: "My mailbox".)
+    After it runs, check for errors, then press space.
     
  3. Restart Eudora.
  

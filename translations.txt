@@ -5,13 +5,17 @@
 ;See https://en.wikipedia.org/wiki/Windows-1252
 ;For a version that translates only into standard ASCII, see translations_ASCII.txt
 
-;Replacements in this file generally apply only to the from, to, and subject lines in the
-;message headers. If you're willing to forgo those, it speeds up processing by about 2x:
-;options skipheaders  ;uncomment this line to not make changes in the headers
+;By default we allow Eudora to be running for non-system mailboxes, ie not
+;In, Out, Trash, and Junk. If you don't want Eudora ever running, uncomment this line:
+;options noeudora
 
-;By default we look for replacements in the to/from address list and the subject field
-;in the table-of-contents file. You can choose not do that that:
-;options skiptoc     ;uncomment this line to not make changes in the table-of-contents
+;By default we do replacements in the to/from address list and the subject field
+;of the table-of-contents file. You can choose not do that that:
+;options skiptoc  ;uncomment this line to not make changes in the table-of-contents
+
+;Replacements made in the message headers generally happen only in the "from",
+;"to", and "subject" lines. Processing speeds up by about 2x if you forgo those:
+;options skipheaders  ;uncomment this line to not make changes in the headers
 
 ;In order to make Eudora display Windows-1252 codes using Microsoft's viewer,
 ;we have to remove the selection of UTF-8 coding in the HTML "meta" tag:
@@ -165,6 +169,7 @@ EFBFBD = "?"     ;replacement character (subsituted for a bad code)
 
 ;Fix Outlook-generated messages so Eudora doesn't insert extra blank lines when replying.
 <body> "<p class=MsoNormal>" = "" <setmatch 1>     ;remove Outlook 0-margin paragraphs
+<body> '<p class="MsoNormal">' = "" <setmatch 1>   ;remove Outlook 0-margin paragraphs
 <body> <ifmatch 1> "</p>" = "<br>" <clearmatch 1>  ;and replace with linebreak
 
 ;end of translations.txt
