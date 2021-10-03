@@ -1,7 +1,7 @@
 Eudora_fix_mbx: Repair UTF-8 character codes and problematic HTML in Eudora mailboxes
 
 This is a command-line (non-GUI) Windows program that modifies the data of Eudora
-mailboxes -- and the to/from and subject fields of table-of-contents (TOC) files --
+mailboxes, and of the to/from and subject fields of table-of-contents (TOC) files,
 in ways like this:
 
   - change UTF-8 characters that aren't rendered correctly into related ASCII
@@ -10,14 +10,20 @@ in ways like this:
     so Eudora will move to a new line and not squash everything together
   - change Outlook-generated non-standard HTML into something Eudora deals correctly with
 
+This is freeware, and it lives at  https://github.com/LenShustek/Eudora_fix_mbx.
+
+You don't really have to understand all of the information below to use the program.
+If you are ok with the defaults, see the instructions.txt file for a cookbook way
+to install and run the program.
+
 When used on system mailboxes (In, Out, Junk, and Trash) this should only be run when
 Eudora is not running, and a runtime check ensures that. For any other mailbox, we lock
-the file so Eudora isn't accessing it while we are, and vice versa. That said, 
-IT IS A GOOD IDEA TO NOT HAVE THE MAILBOX YOU ARE FIXING BE OPEN IN EUDORA.
+the file so Eudora isn't accessing it while we are, and vice versa. That said,
+IT IS A GOOD IDEA TO *NOT* HAVE THE MAILBOX YOU ARE FIXING BE OPEN IN EUDORA.
 
 All of the modifications are made without changing the size of the messages or of the files.
 In addition, the table-of-contents file (.toc) file has its timestamp updated.
-As a result, Eudora won't rebuild the table-of-contents file when it restarts.
+As a result, Eudora won't rebuild the table-of-contents file when it examines the mailbox.
 
 The program learns the changes you want to make from a plain text file named
 "translations.txt" that has the following kinds of lines:
@@ -27,6 +33,7 @@ that control the the operation of the program:
    skipheaders     don't do replacements in the header lines of messages
    skipbody        don't do replacements in the body of messages
    skiptoc         don't do replacements in the table-of-contents file
+   nologging       don't do logging to Eudora_fix_mbx.log
    noeudora        don't allow Eudora to be running even for non-system mailboxes
    eudoraokforsystemmailboxes  a hard-to-type option that lets Eudora run even
                                for system mailboxes, if you like taking risks
@@ -104,11 +111,9 @@ If the mailbox name contains embedded blanks, enclose it in quotes.
 If the mailbox name ends with ".mbx", it is removed. That allows the program to be run
   by dragging and dropping the mailbox file onto the program's icon. The downside of
   doing that is that the status report at the end will disaappear before you can read it.
-  But if there is an error, the program will pause until you acknowledge it.
+  (But the fix_mbx batch file recommended in instructions.txt helps with that.)
 
 The translations.txt file is expected to be in the current directory.
-
-See instructions.txt for one way to install and run the program.
 
 I don't guarantee this will work well for you, so keep a backup of the mailbox
 and TOC files in case you don't like what it did!
