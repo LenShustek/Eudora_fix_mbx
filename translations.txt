@@ -172,7 +172,7 @@ EFBFBD = "?"        ;replacement character (subsituted for a bad code)
 ;PS: There are over 3000 Unicode emojis that are encoded using 3 or 4 bytes, so it is hopeless to
 ; try to deal with them all. Eudora knows how to display 34 of them encoded as "emoticon" ASCII 
 ; character sequences, but only in the body of messages, not in subject lines, and only if not 
-; preceeded or followed by an alphabetic or numeric character unless it is from another emoticon. 
+; preceded or followed by an alphabetic or numeric character unless it is from another emoticon. 
 ; It displays the images that are in Eudora directories Emoticons, Emoticons24, or Emoticons32.
 ; When you send, reply, or forward the message, they are sent as the ASCII sequences unless you
 ; have set <X-Eudora-Option:SendEmoticonsAsImages=1>, in which case they are sent as images.
