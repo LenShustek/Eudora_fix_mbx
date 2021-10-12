@@ -8,13 +8,13 @@ The installation goal is to put three files
 into the directory with your Eudora mailboxes. You can see where that is
 in the "Help" "About Eudora" window, after "Data:".
 
-To install using ZIP files:
+To install using the ZIP file:
 
    Go to https://github.com/LenShustek/Eudora_fix_mbx.
    Cick on the green "Code" button and choose "Download ZIP".
    Unzip the file and copy those three files to your mailbox directory.
    
-To install without dealing with ZIP files:
+To install without dealing with a ZIP file:
 
    1. Go to https://github.com/LenShustek/Eudora_fix_mbx.
       Click on the filename "Eudora_fix_mbx.exe".

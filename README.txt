@@ -39,42 +39,44 @@ that control the the operation of the program:
                                for system mailboxes, if you like taking risks
 
 Others lines of the file specify replacements to make, in this form:
-     searchstring = replacementstring  ;comment
+   searchstring = replacementstring  ;comment
 
- The searchstring can optionally start with clauses restricting the search:
-     <headers>        only match in the headers of messages
-     <body>           only match in the body of messages
-     <html xxx>       only match in HTML <xxx...> tags
-     <ifmatch n>      only match if "match flag n" is set; see <setmatch n>
-     <ignorecase>     treat upper and lower case alphabetics as equivalent
+The searchstring can optionally start with clauses restricting the search:
+   <headers>        only match in the headers of messages
+   <body>           only match in the body of messages
+   <html xxx>       only match inside HTML <xxx...> tags
+   <ifmatch n>      only match if "match flag n" is set; see <setmatch n>
+   <ignorecase>     treat upper and lower case alphabetics as equivalent
 
- Following that is an arbitrary sequence of:
-     "quotedstring"        any printable characters except "
-     'quotedstring'        any printable characters except '
-      hexadecimal string   hexadecimal character codes
+Following that is an arbitrary sequence of:
+   "quotedstring"           any printable characters except "
+   'quotedstring'           any printable characters except '
+    hexadecimal string      hexadecimal character codes
 
-Any single-character item can optionally preceeded by ! to mean "not this character".
+Any single-character item can optionally be preceeded by ! to mean "not this character".
 
-The replacementstring is an arbitrary sequence of:
-        "quotedstring"          any printable characters except "
-        'quotedstring'          any printable characters except '
-         hexadecimal string     hexadecimal character codes
-         *                      use the character that matched !xx in searchstring
-         <blanks>               replace the searchstring with all blanks
-         <setmatch n>           set "match flag n"
-         <clearmatch n>         clear "match flag n"
+The replacementstring can be an arbitrary sequence of:
+   "quotedstring"          any printable characters except "
+   'quotedstring'          any printable characters except '
+    hexadecimal string     hexadecimal character codes
+    *                      replace with the character matching !xx in searchstring
+    <setmatch n>           set "match flag n"
+    <clearmatch n>         clear "match flag n"
+or the replacementstring can be one of these:
+    <blanks>               replace the searchstring with all blanks
+    <nothing>              replace the searchstring with all zeroes (same as "" or '')
 
 The rules are:
   - The searchstring may be 1 to 50 bytes long
   - The replacementstring may not be longer than the string searched for.
   - If the replacement is shorter than the search string, then
-    - In a mailbox, the remaining bytes are changed to zero,
+    - In a mailbox, the remainder bytes of the search string are changed to zero,
       which are ignored when Eudora renders the text.
-    - In the TOC, the following bytes in the field are shifted left; zeroes are inserted at the end.
-      (We can't change remaining bytes to zeroes, because Eudora will stop displaying at a zero byte.)
+    - In the TOC, the rest of the field is shifted left and zeroes are inserted at the end.
+      (We can't change remainder bytes to zeroes, because Eudora stops displaying at a zero.)
   - The match flags, numbered from 0 to 31, remember previous matches. They are all independent.
   - Multiple matchflags in a single searchstring must all be set for the match to trigger.
-  - A * in the replacementstring must match a searchstring character that was preceeded by !.
+  - A * in the replacement string must match a search string character preceeded by !.
   - The components may be separated by one or more spaces.
   - A ; starts a comment
 
@@ -108,14 +110,19 @@ The program is invoked with a single argument, which is the base filename
    Eudora_fix_mbx  Archive.fol\In2008
 
 If the mailbox name contains embedded blanks, enclose it in quotes.
+
 If the mailbox name ends with ".mbx", it is removed. That allows the program to be run
-  by dragging and dropping the mailbox file onto the program's icon. The downside of
-  doing that is that the status report at the end will disaappear before you can read it.
-  (But the fix_mbx batch file recommended in instructions.txt helps with that.)
+by dragging and dropping the mailbox file onto the program's icon. The downside of
+doing that is that the status report at the end will disaappear before you can read it.
+The "fix_mbx" batch file recommended in instructions.txt helps with that, and it makes
+backup files, so try drag-and-dropping onto the batch file's icon instead.
 
 The translations.txt file is expected to be in the current directory.
 
-I don't guarantee this will work well for you, so keep a backup of the mailbox
-and TOC files in case you don't like what it did!
+A status report about what changes were made is appended to the file Eudora_fix_mbx.log,
+unless you have specified "options nologging".
 
-Len Shustek, September 2021
+I don't guarantee this will work well for you, so be sure to keep backups of the
+MBX and TOC files in case you don't like what it did!
+
+Len Shustek, September/October 2021

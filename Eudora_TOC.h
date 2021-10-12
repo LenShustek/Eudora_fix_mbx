@@ -1,6 +1,7 @@
 //file: Eudora_TOC.h
 
 #include <stdint.h>
+//NB: integers are stored in little-endian order
 
 struct Eudora_TOC_header_t { // total of 104 (0x68) bytes
    char version[2];               // usually "1", zero-terminated
