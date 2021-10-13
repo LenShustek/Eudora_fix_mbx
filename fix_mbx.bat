@@ -1,6 +1,7 @@
 @echo off
 rem Fix the UTF-8 characters and other problems in one Eudora mailbox, and maintain
 rem a series of backup files. If the mailbox name isn't an argument, we ask for it.
+rem (this batch file version is from 10/13/2021 at 11:14am)
 set numbackups=5
 set logfile="Eudora_fix_mbx.log"
 set maxlogsize=1000000
@@ -11,6 +12,8 @@ rem remove .mbx extension if it is present, so that drag-and-drop works
 set last4=%mbxname:~-4%
 if "%last4%"==".mbx" set mbxname=%mbxname:~0,-4%
 if "%last4%"==".MBX" set mbxname=%mbxname:~0,-4%
+rem extract just the filename part for the later "rename" commands
+call :setfilename %mbxname%
 rem remove the oldest backup
 rem   Note that naming backups with .mbx and .toc extensions is not a good
 rem   idea, because Eudora has recorded the file name inside the TOC file.
@@ -21,8 +24,8 @@ rem rename all the other existing backups, with the oldest having the highest nu
 SETLOCAL EnableDelayedExpansion
 for /L %%x in (%numbackups%,-1,2)do (
  set /a xminus1=%%x-1
- if exist %mbxname%.mbx.!xminus1!.bak ren %mbxname%.mbx.!xminus1!.bak %mbxname%.mbx.%%x.bak
- if exist %mbxname%.toc.!xminus1!.bak ren %mbxname%.toc.!xminus1!.bak %mbxname%.toc.%%x.bak
+ if exist %mbxname%.mbx.!xminus1!.bak ren %mbxname%.mbx.!xminus1!.bak %filename%.mbx.%%x.bak
+ if exist %mbxname%.toc.!xminus1!.bak ren %mbxname%.toc.!xminus1!.bak %filename%.toc.%%x.bak
  )
 rem create the newest backups with the number 1 in the name
 if exist %mbxname%.mbx copy %mbxname%.mbx %mbxname%.mbx.1.bak
@@ -46,4 +49,8 @@ more +100 %logfile% > %logfile%.tmp
 del %logfile%
 ren %logfile%.tmp %logfile%
 goto truncate
+rem helper routine to allow the ~n "file name" modifier to be applied to a variable
+:setfilename
+set filename=%~n1
+exit /b
 :done
