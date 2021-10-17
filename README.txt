@@ -128,7 +128,8 @@ unless you have specified "options nologging".
 The program returns the following values, which can be tested as %ERRORLEVEL% in a batch file:
    0 no errors, and changes were made to the mailbox or table-of-contents file
    1 no errors, and no changes were made to either file
-   8 a serious error occurred which has been described in the log and on the console
+   8 a serious error occurred but no changes were made to either file
+   12 a serious error occurred and changes might have been made to one of the files
 
 I don't guarantee this will work well for you, so be sure to keep backups of the
 MBX and TOC files in case you don't like what it did!
