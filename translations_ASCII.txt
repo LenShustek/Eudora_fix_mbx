@@ -1,5 +1,4 @@
 ;translations_ASCII.txt: a file for the Eudora_fix_mbx program that describes replacements
-;translations.txt: a file for the Eudora_fix_mbx program that describes replacements
 ;for common UTF-8 codes and other sequences that Eudora doesn't display correctly.
 
 ;This version translates into only the standard ASCII characters from hex 00 to hex 7F, which
@@ -11,16 +10,17 @@
 ;In, Out, Trash, and Junk. If you don't want Eudora ever running, uncomment this line:
 ;options noeudora
 
+;If you are running this on a very large mailbox and know that changes only need to be made
+;near the end, you can restrict replacements to that by uncommenting this line:
+;options onlydo 10 MB  ;only scan the last chunk of very large mailboxes
+
 ;By default we do replacements in the to/from address list and the subject field
-;of the table-of-contents file. You can choose not do that that:
+;of the table-of-contents file. You can choose not do that that by uncommenting this line:
 ;options skiptoc  ;uncomment this line to not make changes in the table-of-contents
 
-;Replacements made in the message headers generally happen only in the "from",
-;"to", and "subject" lines. Processing speeds up by about 2x if you forgo those:
-;options skipheaders  ;uncomment this line to not make changes in the headers
 
-;UTF-8 hex codes corresponding to Windows-1252 codes 80 to 9F
-;see https://www.i18nqa.com/debug/table-iso8859-1-vs-windows-1252.html
+;Replace UTF-8 hex codes corresponding to Windows-1252 codes 80 to 9F
+;See https://www.i18nqa.com/debug/table-iso8859-1-vs-windows-1252.html
 E282AC = 'E'   ;Euro Sign
 E2809A = "'"   ;Single Low-9 Quotation Mark
 C692   = 'f'   ;Latin Small Letter F With Hook
@@ -49,7 +49,7 @@ C593   = 'oe'  ;Latin Small Ligature OE
 C5BE   = 'z'   ;Latin Small Letter Z With Caron
 C5B8   = 'Y'   ;Latin Capital Letter Y With Diaeresis
 
-;UTF-8 hex codes from U+00A0 to U+00FF, which map into Windows-1252 codes A0 to FF
+;Replace UTF-8 hex codes from U+00A0 to U+00FF, which map into Windows-1252 codes A0 to FF
 ;See https://www.utf8-chartable.de/
 C2A0 = ' '   ;NO-BREAK SPACE
 C2A1 = '!'   ;INVERTED EXCLAMATION MARK
@@ -85,8 +85,8 @@ C2BE = '34'   ;VULGAR FRACTION THREE QUARTERS
 C2BF = '?'   ;INVERTED QUESTION MARK
 C380 = 'A'   ;LATIN CAPITAL LETTER A WITH GRAVE
 C381 = 'A'   ;LATIN CAPITAL LETTER A WITH ACUTE
-C382 = 'A'   ;LATIN CAPITAL LETTER A WITH CIRCUMFLEX ***risky
-C383 = 'A'   ;LATIN CAPITAL LETTER A WITH TILDE ***risky
+C382 = 'A'   ;LATIN CAPITAL LETTER A WITH CIRCUMFLEX
+C383 = 'A'   ;LATIN CAPITAL LETTER A WITH TILDE
 C384 = 'A'   ;LATIN CAPITAL LETTER A WITH DIAERESIS
 C385 = 'A'   ;LATIN CAPITAL LETTER A WITH RING ABOVE
 C386 = 'AE'  ;LATIN CAPITAL LETTER AE
@@ -157,6 +157,7 @@ E28090 = "-"     ;hyphen
 E28092 = "-"     ;figure dash
 E280A3 = ">"     ;triangular bullet
 E28183 = "-"     ;hyphen bullet
+E29885 = "*"     ;black star
 E29D99 = "|"     ;vertical bar
 EFBBBF = ""      ;UTF-8 byte order mark
 EFBFBD = "?"     ;replacement character (subsituted for a bad code)
@@ -168,5 +169,22 @@ EFBFBD = "?"     ;replacement character (subsituted for a bad code)
 <body> "<p class=MsoNormal>" = "" <setmatch 1>     ;remove Outlook 0-margin paragraphs
 <body> '<p class="MsoNormal">' = "" <setmatch 1>   ;remove Outlook 0-margin paragraphs
 <body> <ifmatch 1> "</p>" = "<br>" <clearmatch 1>  ;and replace with linebreak
+
+;PS: There are over 3000 Unicode emojis that are encoded using 3 or 4 bytes, so it is hopeless to
+; try to deal with them all. Eudora knows how to display 34 of them encoded as "emoticon" ASCII 
+; character sequences, but only in the body of messages, not in subject lines, and only if not 
+; preceded or followed by an alphabetic or numeric character unless it is from another emoticon. 
+; It displays the images that are in Eudora directories Emoticons, Emoticons24, or Emoticons32.
+; When you send, reply, or forward the message, they are sent as the ASCII sequences unless you
+; have set <X-Eudora-Option:SendEmoticonsAsImages=1>, in which case they are sent as images.
+; If you send them as ASCII, most mail clients other than Eudora (Gmail, Outlook, and Roundcube, 
+; for example) will not display the emojis even though they would have if they were UTF-8 encoded.
+
+;Here are two common cases. If you are happy with Eudora's behavior, you can add more.
+; (In Eudora's Emoticon image directories, the characters before the space in the name are
+; the ASCII character sequences it looks for, with !xx representing a character code in hex.
+; The full list of official Unicode Emojis is here:https://unicode-table.com/en/emoji/.)
+E298B9 = ":-" "("    ;sad face     [ The replacements are in two pieces only so I can email ]
+E298BA = ":-" ")"    ;smiley face  [ this file without having Eudora show them as graphics! ]
 
 ;end of translations_ASCII.txt
