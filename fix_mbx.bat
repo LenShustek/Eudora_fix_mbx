@@ -1,7 +1,7 @@
 @echo off
 rem Fix the UTF-8 characters and other problems in one Eudora mailbox, and maintain
 rem a series of backup files. If the mailbox name isn't an argument, we ask for it.
-rem (this batch file version is from 10/17/2021 at 11:41am)
+rem (this batch file version is from 10/17/2021 at 4:11pm)
 set numbackups=5
 set logfile="Eudora_fix_mbx.log"
 set maxlogsize=1000000
@@ -17,7 +17,7 @@ if "%last4:~0,1%%last4:~0,1%"=="""" goto tooshort
 if "%last4%"==".mbx" set mbxname=%mbxname:~0,-5%"
 if "%last4%"==".MBX" set mbxname=%mbxname:~0,-5%"
 :tooshort
-rem extract just the filename part for the later "rename" commands
+rem extract just the filename part (with surrounding quotes) for the later rename commands
 call :setfilename %mbxname%
 
 rem temporarily create the newest backups with the number 0 in the name
@@ -69,7 +69,7 @@ goto truncatelog
 
 rem helper subroutine to allow the ~n "file name" modifier to be applied to a variable
 :setfilename
-set filename=%~n1
+set filename="%~n1"
 exit /b
 
 :done
