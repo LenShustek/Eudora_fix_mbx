@@ -2,7 +2,7 @@
 ;A file for the Eudora_fix_mbx program (version 0.9 or higher) that describes replacements
 ;for common Unicode (UTF-8) codes and other sequences that Eudora doesn't display correctly.
 
-;This version translates to the Windows-1252 "extended ASCII" character set.
+;This version translates to the Windows-1252 "extended ASCII" (ANSI) character set.
 ;See https://en.wikipedia.org/wiki/Windows-1252
 ;For a version that translates only into standard ASCII, see translations_ASCII.txt
 
@@ -10,14 +10,20 @@
 ;In, Out, Trash, and Junk. If you don't want Eudora ever running, uncomment this line:
 ;options noeudora
 
+;If you are running this on a very large mailbox and know that changes only need to be made
+;near the end, you can restrict replacements to there by uncommenting this line:
+;options onlydo 10 MB  ;only scan the last chunk of very large mailboxes
+
 ;By default we do replacements in the to/from address list and the subject field
-;of the table-of-contents file. You can choose not do that that:
+;of the table-of-contents file. You can choose not do that that by uncommenting this line:
 ;options skiptoc  ;uncomment this line to not make changes in the table-of-contents
 
-;In order to make Eudora display Windows-1252 codes using Microsoft's viewer,
-;we have to remove the selection of UTF-8 coding in the HTML "meta" tag:
-<body> <ignorecase> <html meta> "charset=utf-8" = <blanks>
-<body> <ignorecase> <html meta> 'charset="utf-8"' = <blanks>
+;In order to make Eudora display Windows-1252 codes using Microsoft's viewer, we have to
+;change the selection of coding from UTF-8 or us-ascii to ANSI in the HTML "meta" tag:
+<body> <ignorecase> <html meta> "charset=utf-8" = "charset=ANSI "
+<body> <ignorecase> <html meta> 'charset="utf-8"' = 'charset="ANSI" '
+<body> <ignorecase> <html meta> "charset=us-ascii" = "charset=ANSI    "
+<body> <ignorecase> <html meta> 'charset="us-ascii"' = 'charset="ANSI"    '
 
 ;Replace UTF-8 hex codes corresponding to Windows-1252 codes 80 to 9F
 ;See https://www.i18nqa.com/debug/table-iso8859-1-vs-windows-1252.html

@@ -42,7 +42,8 @@ To install without dealing with a ZIP file:
       (If the name has embedded spaces, enclose it in quotes: "My mailbox".)
     
     - If there are errors, the batch file will pause for you to review them.
-    - Five previous backups of the mailbox file are kept.
+    - Five previous backups of the mailbox file are kept. If no changes are
+      made to the mailbox when you run the program, a new backup is not created.
     - There is a log kept in Eudora_fix_mbx.log. The oldest entries are
       removed when the log file becomes bigger than 1MB.
     - If you create a shortcut to the batch file on your desktop, you can run

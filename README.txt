@@ -30,13 +30,16 @@ The program learns the changes you want to make from a plain text file named
 
 Lines starting with "options" let you specify one or more keywords
 that control the the operation of the program:
-   skipheaders     don't do replacements in the header lines of messages
-   skipbody        don't do replacements in the body of messages
-   skiptoc         don't do replacements in the table-of-contents file
-   nologging       don't do logging to Eudora_fix_mbx.log
-   noeudora        don't allow Eudora to be running even for non-system mailboxes
-   eudoraokforsystemmailboxes  a hard-to-type option that lets Eudora run even
-                               for system mailboxes, if you like taking risks
+   skipheaders     Don't do replacements in the header lines of messages
+   skipbody        Don't do replacements in the body of messages
+   skiptoc         Don't do replacements in the table-of-contents file
+   nologging       Don't do logging to Eudora_fix_mbx.log
+   noeudora        Don't allow Eudora to be running even for non-system mailboxes
+   eudoraokforsystemmailboxes  A hard-to-type option that lets Eudora run even
+                                 for system mailboxes, if you like taking risks
+   onlydo xx MB (or xx KB)  Only look at messages within the specified number of bytes at
+                              the end of the mailbox, if the mailbox is larger than that.
+                              This speeds up processing for very large mailboxes.
 
 Others lines of the file specify replacements to make, in this form:
    searchstring = replacementstring  ;comment
@@ -121,6 +124,11 @@ The translations.txt file is expected to be in the current directory.
 
 A status report about what changes were made is appended to the file Eudora_fix_mbx.log,
 unless you have specified "options nologging".
+
+The program returns the following values, which can be tested as %ERRORLEVEL% in a batch file:
+   0 no errors, and changes were made to the mailbox or table-of-contents file
+   1 no errors, and no changes were made to either file
+   8 a serious error occurred which has been described in the log and on the console
 
 I don't guarantee this will work well for you, so be sure to keep backups of the
 MBX and TOC files in case you don't like what it did!
