@@ -1,17 +1,22 @@
 @echo off
 rem Fix the UTF-8 characters and other problems in one Eudora mailbox, and maintain
 rem a series of backup files. If the mailbox name isn't an argument, we ask for it.
-rem (this batch file version is from 10/16/2021 at 7:21am)
+rem (this batch file version is from 10/17/2021 at 11:41am)
 set numbackups=5
 set logfile="Eudora_fix_mbx.log"
 set maxlogsize=1000000
 
 set mbxname=%1
-if "%1"=="" set /p mbxname="mailbox name: "
+if "%~1"=="" set /p mbxname="mailbox name: "
+rem enclose the name in quotes, if it isn't already, in case there are embedded blanks
+if "%mbxname:~0,1%%mbxname:~0,1%"=="""" (rem first character is a quote
+) else set mbxname="%mbxname%"
 rem remove .mbx extension if it is present, so that drag-and-drop works
-set last4=%mbxname:~-4%
-if "%last4%"==".mbx" set mbxname=%mbxname:~0,-4%
-if "%last4%"==".MBX" set mbxname=%mbxname:~0,-4%
+set last4=%mbxname:~-5,4%
+if "%last4:~0,1%%last4:~0,1%"=="""" goto tooshort
+if "%last4%"==".mbx" set mbxname=%mbxname:~0,-5%"
+if "%last4%"==".MBX" set mbxname=%mbxname:~0,-5%"
+:tooshort
 rem extract just the filename part for the later "rename" commands
 call :setfilename %mbxname%
 
@@ -31,14 +36,14 @@ if %returnval% GTR 8 goto keepbackup
 rem no changes were made, or there was an error with no changes: delete the new backups
 if exist %mbxname%.mbx.0.bak del %mbxname%.mbx.0.bak
 if exist %mbxname%.toc.0.bak del %mbxname%.toc.0.bak
-echo no changes were made, so the new backup of mailbox "%mbxname%" was removed
+echo no changes were made, so the new backup of mailbox %mbxname% was removed
 goto :truncatelog
 
 :keepbackup
 rem first remove the oldest backup -- the one with the highest number
 if exist %mbxname%.mbx.%numbackups%.bak del %mbxname%.mbx.%numbackups%.bak
 if exist %mbxname%.toc.%numbackups%.bak del %mbxname%.toc.%numbackups%.bak
-if exist %mbxname%.mbx.0.bak echo a backup of mailbox "%mbxname%" was kept
+if exist %mbxname%.mbx.0.bak echo a backup of mailbox %mbxname% was kept
 rem now rename the remaining backups, so the newest is 1 and the oldest has the highest number
 SETLOCAL EnableDelayedExpansion
 for /L %%x in (%numbackups%,-1,1)do (
@@ -47,7 +52,7 @@ for /L %%x in (%numbackups%,-1,1)do (
  if exist %mbxname%.toc.!xminus1!.bak ren %mbxname%.toc.!xminus1!.bak %filename%.toc.%%x.bak
  )
 rem make a log entry that lists all the backups
-echo mailbox "%mbxname%" backups as of %date% at %time% >>%logfile%
+echo mailbox %mbxname% backups as of %date% at %time% >>%logfile%
   rem (the "more" below removes the first 5 useless lines of the directory list)
 dir /OD %mbxname%.* | more +5 >>%logfile%
 
