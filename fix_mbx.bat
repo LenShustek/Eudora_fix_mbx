@@ -1,13 +1,16 @@
 @echo off
 rem Fix the UTF-8 characters and other problems in one Eudora mailbox, and maintain
 rem a series of backup files. If the mailbox name isn't an argument, we ask for it.
-rem (this batch file version is from 10/17/2021 at 4:11pm)
+rem (this batch file version is from 10/19/2021 at12:08pm)
 set numbackups=5
 set logfile="Eudora_fix_mbx.log"
 set maxlogsize=1000000
 
 set mbxname=%1
 if "%~1"=="" set /p mbxname="mailbox name: "
+rem change forward slashes in the name to back slashes. Forward slashes will work in
+rem   the Eudora_fix_mbx program, but not in batch file commands
+set mbxname=%mbxname:/=\%
 rem enclose the name in quotes, if it isn't already, in case there are embedded blanks
 if "%mbxname:~0,1%%mbxname:~0,1%"=="""" (rem first character is a quote
 ) else set mbxname="%mbxname%"
