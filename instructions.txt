@@ -36,15 +36,18 @@ To install without dealing with a ZIP file:
  To run
 
     Make sure the mailbox(es) you wish to fix are not open in Eudora.
-    Using the Windows File Explorer, navigate to where your Eudora mailboxes are.
-    Doubleclick on "fix_mbx.bat" (or "fix_mbx")
-    Enter the name of the mailbox you wish to fix, without the .mbx extension.
-      (If the name has embedded spaces, enclose it in quotes: "My mailbox".)
-    
+    Then, option 1:
+      Using the Windows File Explorer, navigate to where your Eudora mailboxes are.
+      Doubleclick on "fix_mbx.bat" (or "fix_mbx")
+      Enter the name of the mailbox you wish to fix.
+        (If the name has embedded spaces, enclose it in quotes: "My mailbox".)
+    Or, option 2:
+      If you create a shortcut to the batch file on your desktop, you can run
+      it by just doing a drag-and-drop of the mailbox file onto it.
+
     - If there are errors, the batch file will pause for you to review them.
     - Five previous backups of the mailbox file are kept. If no changes are
       made to the mailbox when you run the program, a new backup is not created.
     - There is a log kept in Eudora_fix_mbx.log. The oldest entries are
       removed when the log file becomes bigger than 1MB.
-    - If you create a shortcut to the batch file on your desktop, you can run
-      it by just doing a drag-and-drop of the mailbox file onto it.
+ 

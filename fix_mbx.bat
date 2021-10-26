@@ -76,3 +76,5 @@ set filename="%~n1"
 exit /b
 
 :done
+rem If you had stopped Eudora and want to restart it automatically, try something like this here:
+rem start /b "" "C:\Program Files (x86)\Qualcomm\Eudora\Eudora.exe"

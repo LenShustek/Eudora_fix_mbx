@@ -1,0 +1,103 @@
+Version 1.1, 10/26/2021
+
+Changes to the program:
+ - It reports the date of the first mailbox message changed.
+ - In the report it shows <blank> for search string blanks, which were otherwise invisible.
+ 
+Changes to the suggested translations.txt file:
+ - The Unicode "zero-width joiner", hex E2 80 8D, will now be removed from messages.
+ - The circumflex-A that might be the result of a Eudora bug is now removed in more cases.
+ - Add <ignorecase> to catch more instances of the Outlook issue that causes extra reply lines.
+ - There are more suggestions at the end for how to deal with Emojis and other graphics.
+   The translations are commented out and left for you to enable if you like their behavior.
+
+
+Version 1.0, 10/16/2021
+
+ - For those of us who run it on large mailboxes where only the new messages at the end need fixing, 
+I followed Garth Hjelte's suggestion to add an option that speeds up processing for that case. But 
+rather than specify the percentage of the mailbox to look at, which would have meant that small 
+mailboxes wouldn't have been fully processed, you instead specify how many bytes at the end of the 
+mailbox you want the program to examine. I use the following option, which ensures that mailboxes 
+smaller than 10 MB are always completely processed: 
+   options onlydo 10 MB 
+If the mailbox is larger than 10 MB, it looks 10 MB back from the end and starts with the first 
+message it finds after that. 
+
+- The program now returns ERRORLEVEL 1 if there were no errors but no changes needed to be made to 
+the MBX or TOC files. That lets the calling batch file know what happened, so... 
+
+- The suggested batch file fix_mbx.bat now uses that to discard the new backup if no changes were 
+made. That means that all five retained backups represent actual changes, and there are no identical 
+copies kept. 
+
+- Some Outlook-generated emails weren't correctly displayed after being fixed because in their HTML 
+they specified "charset=us-ascii". The suggested translations.txt file now changes that to 
+"charset=ANSI" to make them work right with both Microsoft's viewer and Eudora's internal viewer. 
+
+- The UTF-8 code E29885, "black star", was added to translations.txt. (Thanks to Bob Zucker, who 
+pointed out that Google Maps uses it for ratings.) 
+
+
+Version 0.9, 10/12/2021
+ - more information is reported when the program is done
+ - <nothing> is now a replacement option, and is equivalent to "" or ''
+
+
+Version 0.8, 10/3/2021
+  - It now appends a summary of what it did to Eudora_fix_mbx.log.
+  - It doesn't pause after errors; the batch file calling it can do that.
+  - I think it now will run on Windows XP, as well as all subsequent versions.
+  - For other minor changes, see the change log in the source code.
+  - The installation instructions have been reworked.
+  - The suggested batch file to run it, fix_mbx.bat, now keeps 5 recent 
+    backup copies of each mailbox processed. It lists backups in the log file, 
+    and trims old entries from the log file if it grows bigger than 1 MB.
+    
+    
+Version 0.7, 9/28/2021
+
+- The big change is that I now allow Eudora to be running when you fix non-system mailboxes. I was 
+able do that by changing to a newer Microsoft-specific file system interface (fileapi.h) that allows 
+locking, so I lock the files to prevent Eudora from accessing them at the same time. That said, it 
+is a good idea to NOT have the mailbox you are fixing be open in Eudora at that time. 
+
+(There is also a hard-to-type option that lets you fix the system mailboxes (In, Out, Trash, and 
+Junk) while Eudora is running. But since Eudora keeps some or all of those in memory, unless you are 
+very, very careful about what changes Eudora might make, that is an excellent way to corrupt your 
+mailbox.) 
+
+Other smaller changes:
+ - search restriction clauses can appear in any order
+ - progress dots for big TOC files now works
+ - the Outlook double-space-reply problem is fixed in more cases
+ 
+ 
+Version 0.6, 9/23/2021
+ - Add match flags: <ifmatch n>, <setmatch n>, <clearmatch n>
+ - Do subsitutions in the subject and address fields of TOC file.
+ - Add options: skipheaders, skipbody, skiptoc
+ - Add progress dots for big mailboxes; show total time taken.
+  
+Version 0.5, 9/19/2021
+ - Add search modifiers: <headers> <body> <html xxx> <ignorecase>
+ - Add <blanks> as a replacement option
+ 
+Version 0.4, 9/17/2021
+ - Fix bug when printing extended ascii characters in the report.
+ - Increase the translations.txt max linesize from 80 to 200.
+ - Increase the max translations from 250 to 500.
+ - In the status report, only show translations actually used.
+ - Don't display the translation.txt file lines as they are read.
+ - Check for duplicate search strings.
+ 
+Version 0.3, 9/16/2021
+ - Show a map of places changed. Minor cosmetic fixes.
+ - Fix serious bug in ".mbx" extension removal code.
+ 
+Version 0.2, 9/14/2021
+ - Elaborate to allow NOT searches, string search specifiers, and "same as source" 
+   replacements. The syntax of the translation.txt file has changed.
+  
+Version 0.1, 9/12/2021
+ - First version.

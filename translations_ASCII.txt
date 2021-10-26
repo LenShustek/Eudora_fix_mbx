@@ -1,23 +1,24 @@
-;translations_ASCII.txt: a file for the Eudora_fix_mbx program that describes replacements
-;for common UTF-8 codes and other sequences that Eudora doesn't display correctly.
+;translations_ASCII.txt: version of 10/23/2021 at 9:41pm
+;A file for the Eudora_fix_mbx program (version 1.0 or higher) that describes replacements
+;for common Unicode (UTF-8) codes and other sequences that Eudora doesn't display correctly.
 
 ;This version translates into only the standard ASCII characters from hex 00 to hex 7F, which
 ;  makes some of the replacements fairly cryptic. To use it, rename it to translations.txt.
 ;For a version that translates into the Windows-1252 extended ASCII character set,
 ;  which Eudora does seem to display correctly, use the supplied translations.txt.
 
-;By default we allow Eudora to be running for non-system mailboxes, ie not
-;In, Out, Trash, and Junk. If you don't want Eudora ever running, uncomment this line:
-;options noeudora
+;By default we allow Eudora to be running when fixing non-system mailboxes -- which should
+;be closed -- but not when fixing In, Out, Trash, or Junk. If you don't want Eudora running
+;at all when fixing mailboxes, uncomment the following line by removing the first semicolon:
+;options noeudora   ;never fix any mailboxes if Eudora is running
 
 ;If you are running this on a very large mailbox and know that changes only need to be made
-;near the end, you can restrict replacements to that by uncommenting this line:
+;near the end, you can restrict replacements and speed things up by uncommenting this line:
 ;options onlydo 10 MB  ;only scan the last chunk of very large mailboxes
 
-;By default we do replacements in the to/from address list and the subject field
-;of the table-of-contents file. You can choose not do that that by uncommenting this line:
-;options skiptoc  ;uncomment this line to not make changes in the table-of-contents
-
+;By default we do replacements in the address and the subject fields of the
+;table-of-contents file. You can choose not do that that by uncommenting this line:
+;options skiptoc  ;don't make changes in the table-of-contents file
 
 ;Replace UTF-8 hex codes corresponding to Windows-1252 codes 80 to 9F
 ;See https://www.i18nqa.com/debug/table-iso8859-1-vs-windows-1252.html
@@ -153,6 +154,7 @@ E28080 = " "     ;En quad
 E28081 = "  "    ;Em quad
 E2808B = ""      ;zero-width space
 E2808C = ""      ;zero-width non-joiner
+E2808D = <nothing>  ;zero-width joiner
 E28090 = "-"     ;hyphen
 E28092 = "-"     ;figure dash
 E280A3 = ">"     ;triangular bullet
@@ -162,15 +164,23 @@ E29D99 = "|"     ;vertical bar
 EFBBBF = ""      ;UTF-8 byte order mark
 EFBFBD = "?"     ;replacement character (subsituted for a bad code)
 
+;Replace some bogus appearances of circumflex-A that we think result from a Eudora bug
+C2 ' '       = ' '       ;remove extraneous circumflex-A
+C2 0D        = 00 0D     ;remove extraneous circumflex-A (00 first in case 0A follows)
+C2 "&nbsp;"  = "&nbsp;"  ;remove extraneous circumflex-A
+
 ;Prevent text blocks from being squashed by Eudora because they contain only naked linefeeds.
 !0d 0a !0d = * 0d *    ; change isolated linefeeds to carriage return
 
 ;Fix Outlook-generated messages so Eudora doesn't insert extra blank lines when replying.
-<body> "<p class=MsoNormal>" = "" <setmatch 1>     ;remove Outlook 0-margin paragraphs
-<body> '<p class="MsoNormal">' = "" <setmatch 1>   ;remove Outlook 0-margin paragraphs
-<body> <ifmatch 1> "</p>" = "<br>" <clearmatch 1>  ;and replace with linebreak
+<body> <ignorecase> "<p class=MsoNormal>" = "" <setmatch 1>     ;remove Outlook 0-margin paragraphs
+<body> <ignorecase> '<p class="MsoNormal">' = "" <setmatch 1>   ;remove Outlook 0-margin paragraphs
+<body> <ignorecase> <ifmatch 1> "</p>" = "<br>" <clearmatch 1>  ;and replace with linebreak
 
-;PS: There are over 3000 Unicode emojis that are encoded using 3 or 4 bytes, so it is hopeless to
+;Appendix: Here are some ideas for dealing with Emojis and other Unicode graphics.
+; You can "uncomment" and activate the replacement rules by removing the initial semicolon.
+
+; There are over 3000 Unicode emojis that are encoded using 3 or 4 bytes, so it is hopeless to
 ; try to deal with them all. Eudora knows how to display 34 of them encoded as "emoticon" ASCII 
 ; character sequences, but only in the body of messages, not in subject lines, and only if not 
 ; preceded or followed by an alphabetic or numeric character unless it is from another emoticon. 
@@ -180,11 +190,24 @@ EFBFBD = "?"     ;replacement character (subsituted for a bad code)
 ; If you send them as ASCII, most mail clients other than Eudora (Gmail, Outlook, and Roundcube, 
 ; for example) will not display the emojis even though they would have if they were UTF-8 encoded.
 
-;Here are two common cases. If you are happy with Eudora's behavior, you can add more.
-; (In Eudora's Emoticon image directories, the characters before the space in the name are
-; the ASCII character sequences it looks for, with !xx representing a character code in hex.
-; The full list of official Unicode Emojis is here:https://unicode-table.com/en/emoji/.)
-E298B9 = ":-" "("    ;sad face     [ The replacements are in two pieces only so I can email ]
-E298BA = ":-" ")"    ;smiley face  [ this file without having Eudora show them as graphics! ]
+;If you are happy with Eudora's behavior for emoticons, here are two easy cases to try by uncommenting.
+;(The replacements are in pieces only so Eudora doesn't show them as graphics if this file is emailed!) 
+;E298B9 = ":-" "("   ;sad face
+;E298BA = ":-" ")"   ;smiley face
+;You can add more. In Eudora's Emoticon image directories, the characters before the space in the
+;name are the ASCII character sequences it looks for, with !xx representing a character code in hex.
+;The list of official Unicode Emojis you could translate is here: https://unicode-table.com/en/emoji/.
+
+;Instead of doing the the codes one at a time, you could specify blocks of 64
+;3-byte Unicode characters at a time with rules like this:
+;E298 !00 = "(O)"      ;replace Unicode graphics codes U+2600 through U+263F with (O)
+;E299 !00 = "(O)"      ;replace Unicode graphics codes U+2640 through U+267F with (O)
+
+;Here's an even bigger group of 4096 Unicode emoji-like pictograms, 
+;all of which are displayed in Eudora as four weird characters:
+;F09F !00 !00 = "(O)"  ;replace Unicode graphics codes U+1F000 through U+1FFFF with (O)
+
+;Remember that if you specify those block translations, the message forever loses
+;any encoding of what the specific original graphic was.
 
 ;end of translations_ASCII.txt

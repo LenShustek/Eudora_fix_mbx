@@ -26,25 +26,29 @@ In addition, the table-of-contents file (.toc) file has its timestamp updated.
 As a result, Eudora won't rebuild the table-of-contents file when it examines the mailbox.
 
 The program learns the changes you want to make from a plain text file named
-"translations.txt" that has the following kinds of lines:
+"translations.txt", and we supply a suggested file to start with. Here are the kind 
+lines that it can have:
 
 Lines starting with "options" let you specify one or more keywords
 that control the the operation of the program:
-   skipheaders     Don't do replacements in the header lines of messages
-   skipbody        Don't do replacements in the body of messages
-   skiptoc         Don't do replacements in the table-of-contents file
-   nologging       Don't do logging to Eudora_fix_mbx.log
-   noeudora        Don't allow Eudora to be running even for non-system mailboxes
-   eudoraokforsystemmailboxes  A hard-to-type option that lets Eudora run even
-                                 for system mailboxes, if you like taking risks
-   onlydo xx MB (or xx KB)  Only look at messages within the specified number of bytes at
-                              the end of the mailbox, if the mailbox is larger than that.
-                              This speeds up processing for very large mailboxes.
 
-Others lines of the file specify replacements to make, in this form:
+   skipheaders              Don't do replacements in the header lines of messages
+   skipbody                 Don't do replacements in the body of messages
+   skiptoc                  Don't do replacements in the table-of-contents file
+   nologging                Don't do logging to Eudora_fix_mbx.log
+   onlydo xx MB (or xx KB)  Only look at messages within the specified number of bytes at
+                            the end of the mailbox, if the mailbox is larger than that.
+                            This speeds up processing for very large mailboxes.
+   noeudora                 Don't allow Eudora to be running even for processing
+                            non-system mailboxes
+
+   eudoraokforsystemmailboxes  A hard-to-type option that lets Eudora run even when
+                               processing system mailboxes, if you like taking risks.
+
+Other lines of the file specify replacements to make, in this form:
    searchstring = replacementstring  ;comment
 
-The searchstring can optionally start with clauses restricting the search:
+The searchstring can optionally start with clauses that restrict the search:
    <headers>        only match in the headers of messages
    <body>           only match in the body of messages
    <html xxx>       only match inside HTML <xxx...> tags
@@ -62,16 +66,17 @@ The replacementstring can be an arbitrary sequence of:
    "quotedstring"          any printable characters except "
    'quotedstring'          any printable characters except '
     hexadecimal string     hexadecimal character codes
-    *                      replace with the character matching !xx in searchstring
+    *                      replace with the character that matched !xx in searchstring
     <setmatch n>           set "match flag n"
     <clearmatch n>         clear "match flag n"
+
 or the replacementstring can be one of these:
     <blanks>               replace the searchstring with all blanks
     <nothing>              replace the searchstring with all zeroes (same as "" or '')
 
 The rules are:
-  - The searchstring may be 1 to 50 bytes long
-  - The replacementstring may not be longer than the string searched for.
+  - The searchstring may be from 1 to 50 bytes long
+  - The replacementstring may not be longer than the string being searched for.
   - If the replacement is shorter than the search string, then
     - In a mailbox, the remainder bytes of the search string are changed to zero,
       which are ignored when Eudora renders the text.
@@ -116,17 +121,17 @@ If the mailbox name contains embedded blanks, enclose it in quotes.
 
 If the mailbox name ends with ".mbx", it is removed. That allows the program to be run
 by dragging and dropping the mailbox file onto the program's icon. The downside of
-doing that is that the status report at the end will disaappear before you can read it.
+doing that is that an error reported at the end will disaappear before you can read it.
 The "fix_mbx" batch file recommended in instructions.txt helps with that, and it makes
 backup files, so try drag-and-dropping onto the batch file's icon instead.
 
 The translations.txt file is expected to be in the current directory.
 
-A status report about what changes were made is appended to the file Eudora_fix_mbx.log,
-unless you have specified "options nologging".
+A status report about what changes were made (or what errors were found) is appended
+to the file Eudora_fix_mbx.log, unless you have specified "options nologging".
 
 The program returns the following values, which can be tested as %ERRORLEVEL% in a batch file:
-   0 no errors, and changes were made to the mailbox or table-of-contents file
+   0 no errors, and changes were made to the mailbox and/or the table-of-contents file
    1 no errors, and no changes were made to either file
    8 a serious error occurred but no changes were made to either file
    12 a serious error occurred and changes might have been made to one of the files
