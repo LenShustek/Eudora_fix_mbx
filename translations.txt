@@ -1,4 +1,4 @@
-;translations.txt, version of 10/23/2021 at 9:41pm
+;translations.txt, version of 10/29/2021 at 7:52am
 ;A file for the Eudora_fix_mbx program (version 1.0 or higher) that describes replacements
 ;for common Unicode (UTF-8) codes and other sequences that Eudora doesn't display correctly.
 
@@ -164,6 +164,7 @@ E2808D = <nothing>  ;zero-width joiner
 E28090 = "-"        ;hyphen
 E28092 = "-"        ;figure dash
 E280A3 = ">"        ;triangular bullet
+E280AF = " "        ;narrow no-break space
 E28183 = "-"        ;hyphen bullet
 E29885 = "*"        ;black star
 E29D99 = "|"        ;vertical bar
