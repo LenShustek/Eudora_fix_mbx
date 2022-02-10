@@ -1,8 +1,24 @@
-Version 1.1, 10/26/2021
+*** Version 1.2, 10 February 2022
 
 Changes to the program:
- - It reports the date of the first mailbox message changed.
- - In the report it shows <blank> for search string blanks, which were otherwise invisible.
+ - Add the -t command line option to specify the name and even pathname for the translations file.
+ - Add the "checksync" option to verify that TOC entries point to messages in the MBX.
+ - Increase the maximum search and replacement size from 50 to 100 bytes.
+ - Fix bug: a search would sometimes match beyond the end of the valid data at the end of the file,
+     allowing the match to repeat next time. (Thanks to Art Maravelis for finding an example.)
+ - Complain about "duplicate search string" only if testflags and options also match.
+ - Allow <setmatch> after <blanks> or <nothing> in the replacement string.
+ - Give an error more reliably when translations are missing the search or replacement string.
+ 
+Changes to the suggested translations.txt file:
+ - Do the Outlook 0-margin paragraph fix for extra blank lines in replied-to messages
+   when the paragraph class is MsoPlainText too, not just for MsoNormal.
+ 
+*** Version 1.1, 26 October 2021
+
+Changes to the program:
+ - Show the date of the first mailbox message changed.
+ - In the translation summary show <blank> for search string blanks, which were otherwise invisible.
  
 Changes to the suggested translations.txt file:
  - The Unicode "zero-width joiner", hex E2 80 8D, will now be removed from messages.
@@ -12,7 +28,7 @@ Changes to the suggested translations.txt file:
    The translations are commented out and left for you to enable if you like their behavior.
 
 
-Version 1.0, 10/16/2021
+*** Version 1.0, 16 October 2021
 
  - For those of us who run it on large mailboxes where only the new messages at the end need fixing, 
 I followed Garth Hjelte's suggestion to add an option that speeds up processing for that case. But 
@@ -39,12 +55,12 @@ they specified "charset=us-ascii". The suggested translations.txt file now chang
 pointed out that Google Maps uses it for ratings.) 
 
 
-Version 0.9, 10/12/2021
+*** Version 0.9, 12 October 2021
  - more information is reported when the program is done
  - <nothing> is now a replacement option, and is equivalent to "" or ''
 
 
-Version 0.8, 10/3/2021
+*** Version 0.8, 3 October 2021
   - It now appends a summary of what it did to Eudora_fix_mbx.log.
   - It doesn't pause after errors; the batch file calling it can do that.
   - I think it now will run on Windows XP, as well as all subsequent versions.
@@ -55,7 +71,7 @@ Version 0.8, 10/3/2021
     and trims old entries from the log file if it grows bigger than 1 MB.
     
     
-Version 0.7, 9/28/2021
+*** Version 0.7, 28 September 2021
 
 - The big change is that I now allow Eudora to be running when you fix non-system mailboxes. I was 
 able do that by changing to a newer Microsoft-specific file system interface (fileapi.h) that allows 
@@ -73,17 +89,17 @@ Other smaller changes:
  - the Outlook double-space-reply problem is fixed in more cases
  
  
-Version 0.6, 9/23/2021
+*** Version 0.6, 23 September 2021
  - Add match flags: <ifmatch n>, <setmatch n>, <clearmatch n>
  - Do subsitutions in the subject and address fields of TOC file.
  - Add options: skipheaders, skipbody, skiptoc
  - Add progress dots for big mailboxes; show total time taken.
   
-Version 0.5, 9/19/2021
+*** Version 0.5, 19 September 2021
  - Add search modifiers: <headers> <body> <html xxx> <ignorecase>
  - Add <blanks> as a replacement option
  
-Version 0.4, 9/17/2021
+*** Version 0.4, 17 September 2021
  - Fix bug when printing extended ascii characters in the report.
  - Increase the translations.txt max linesize from 80 to 200.
  - Increase the max translations from 250 to 500.
@@ -91,13 +107,14 @@ Version 0.4, 9/17/2021
  - Don't display the translation.txt file lines as they are read.
  - Check for duplicate search strings.
  
-Version 0.3, 9/16/2021
+*** Version 0.3, 16 September 2021
  - Show a map of places changed. Minor cosmetic fixes.
  - Fix serious bug in ".mbx" extension removal code.
  
-Version 0.2, 9/14/2021
+*** Version 0.2, 14 September 2021
  - Elaborate to allow NOT searches, string search specifiers, and "same as source" 
    replacements. The syntax of the translation.txt file has changed.
   
-Version 0.1, 9/12/2021
+*** Version 0.1, 12 September 2021
  - First version.
+ 

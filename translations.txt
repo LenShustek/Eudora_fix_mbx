@@ -1,14 +1,16 @@
-;translations.txt, version of 10/29/2021 at 7:52am
-;A file for the Eudora_fix_mbx program (version 1.0 or higher) that describes replacements
+;translations.txt, version of 1/25/2022 at 9:15am
+;A file for the Eudora_fix_mbx program (version 1.2 or higher) that describes replacements
 ;for common Unicode (UTF-8) codes and other sequences that Eudora doesn't display correctly.
 
 ;This version translates to the Windows-1252 "extended ASCII" (ANSI) character set.
 ;See https://en.wikipedia.org/wiki/Windows-1252
 ;For a version that translates only into standard ASCII, see translations_ASCII.txt.
 
+;****** section 1: program options
+
 ;By default we allow Eudora to be running when fixing non-system mailboxes -- which should
 ;be closed -- but not when fixing In, Out, Trash, or Junk. If you don't want Eudora running
-;at all when fixing mailboxes, uncomment the following line by removing the first semicolon:
+;ever when fixing mailboxes, uncomment the following line by removing the first semicolon:
 ;options noeudora   ;never fix any mailboxes if Eudora is running
 
 ;If you are running this on a very large mailbox and know that changes only need to be made
@@ -18,6 +20,12 @@
 ;By default we do replacements in the address and the subject fields of the
 ;table-of-contents file. You can choose not do that that by uncommenting this line:
 ;options skiptoc  ;don't make changes in the table-of-contents file
+
+;If we're reading the table-of-contents file, the following option asks to verify that all
+;entries point to valid message headers in the mailbox file. To not do that, comment it.
+options checksync  ;check that TOC and MBX are in sync
+
+;***** section 2: translation specifications
 
 ;In order to make Eudora display Windows-1252 codes using Microsoft's viewer, we have to
 ;change the selection of coding from UTF-8 or us-ascii to ANSI in the HTML "meta" tag:
@@ -183,6 +191,10 @@ C2 "&nbsp;"  = "&nbsp;"  ;remove extraneous circumflex-A
 <body> <ignorecase> "<p class=MsoNormal>" = "" <setmatch 1>     ;remove Outlook 0-margin paragraphs
 <body> <ignorecase> '<p class="MsoNormal">' = "" <setmatch 1>   ;remove Outlook 0-margin paragraphs
 <body> <ignorecase> <ifmatch 1> "</p>" = "<br>" <clearmatch 1>  ;and replace with linebreak
+
+<body> <ignorecase> "<p class=MsoPlainText>" = "" <setmatch 2>     ;remove Outlook 0-margin paragraphs
+<body> <ignorecase> '<p class="MsoPlainText">' = "" <setmatch 2>   ;remove Outlook 0-margin paragraphs
+<body> <ignorecase> <ifmatch 2> "</p>" = "<br>" <clearmatch 2>  ;and replace with linebreak
 
 ;Appendix: Here are some ideas for dealing with Emojis and other Unicode graphics.
 ; You can "uncomment" and activate the replacement rules by removing the initial semicolon.
