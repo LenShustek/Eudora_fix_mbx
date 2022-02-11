@@ -1,7 +1,8 @@
 @echo off
 rem Fix the UTF-8 characters and other problems in one Eudora mailbox, and maintain
 rem a series of backup files. If the mailbox name isn't an argument, we ask for it.
-rem (this batch file version is from 10/19/2021 at12:08pm)
+rem Any second argument is passed to the Eudora_fix_mbx program, for example "-t=xxx".
+rem This batch file version is from 10 Feb 2022 at 4:12pm.
 set numbackups=5
 set logfile="Eudora_fix_mbx.log"
 set maxlogsize=1000000
@@ -29,7 +30,7 @@ if exist %mbxname%.toc copy /b %mbxname%.toc %mbxname%.toc.0.bak
 
 rem fix the mailbox and TOC files, which also adds to the log
 echo. >>%logfile%
-Eudora_fix_mbx %mbxname%
+Eudora_fix_mbx %2 %mbxname%
 set /a returnval=%ERRORLEVEL%
 rem errorlevel is 0 for "made changes", 1 for "made no changes", 
 rem   8 for "fatal error with no changes made", 12 for "fatal error with changes"
