@@ -1,0 +1,134 @@
+Date: Wed, 16 Mar 2022 10:50:06 -0700
+Subject: doubled letters in received messages, and a possible fix
+To: Eudora for Windows <eudora-win@hades.listmoms.net>
+From: Len Shustek via Eudora-Win <eudora-win@hades.listmoms.net>
+Cc: Len Shustek <len@shustek.com> 
+
+
+At 01:26 PM 3/11/2022, Len Shustek via Eudora-Win wrote:
+   I looked at several more cases that folks have sent me. The problem seems to 
+   occur if, and only if, there are 3-byte UTF-8 characters encoded in the 
+   quoted-printable text (for example, =E2=80=94) in the same quoted-printable raw 
+   text line. The last character in that line before the soft line break is then 
+   doubled. 
+   ...
+   I've verified that this happens for any of the 15 3-byte UTF-8 codes that Eudora translates into ANSI, but not for the 12 2-byte UTF-8 codes it translates.
+
+That is not quite true. It also happens when Eudora translates 2-byte UTF-8 
+codes to 1-byte ANSI, but only if there are more than one of them in the same 
+line. And it happens when messages are encoded with BASE64, not just 
+quoted-printable, as long as it specifies charset=UTF-8. 
+
+The last N-1 characters in the line are repeated, where N is by how many 
+characters the line got shorter because of Eudora's conversion. For example, if 
+there are two 3-byte UTF-8 codes in the line, those 6 characters become 2 
+characters, and it repeats the last (6-2)-1 = 3 characters at the end of the 
+line. Basically Eudora puts a sting-terminating 0 byte at the end of the new 
+string, but any characters remaining in the buffer after that are processed 
+again. 
+
+I think I found the bug in the source code. I also found where in the .exe file 
+that code is, and created a patch that adds one machine-language instruction to 
+fix it. I hijacked space for the patch by truncating an obscure string ("<!-- 
+START REMOVE FOR LIGHT -->") that I suspect never gets used anymore. For you 
+nerds in the crowd, I'll append the details below. 
+
+The patched version passes my few tests, and I've been running it for a couple 
+of days without problems. But I don't regularly get messages that have the 
+doubled-letter problem, so testing by people who do would be helpful. I'd like 
+to solicit beta testers, but only if they promise to make backups often, in case 
+the change proves to have unintended consequences. 
+
+The patched executable is at https://github.com/LenShustek/Eudora_fix_mbx, in 
+the directory doubleletter_patch. Just stop Eudora, rename your existing 
+eudora.exe to something else, and download the patched version in its place. 
+(Click on the filename in GibHub, and there will be a "Download" button on the 
+right.) 
+
+Of course demonstrating that it works is like proving a negative: "tell me when 
+you don't see doubled letters". 
+
+Len
+
+
+The bug is this source code in function ReadIt() in module TestReader.cpp:
+
+ // give each converter a crack at the line
+ if (attach) {
+    if (!uuing)
+       hexing = BHDecoder.Decode(buf, size, buf, size);
+    if (!hexing)
+       uuing = UUDecoder.Decode(buf, size, buf, size); }
+ // iCharsetIdx = 0 is Windows, 1 is US ASCII and 2 is Latin1 which are
+ // not translated so only translate if the index is greater than 2.
+ if (iCharsetIdx > 2) {
+    // As a first pass at handling other charsets we pass the text
+    // through a translator function.  A more elegant solution would
+    // be to create a decoder for other charsets.
+    ISOTranslate(buf, size, iCharsetIdx); }
+ if (size)
+      {...
+
+This is a classic example of a bug that exists because C++, which I hate, is an 
+intentionally deceitful language. You can't tell what the code does by looking 
+at it. 
+
+Those calls to the xxxx.Decode functions are eligible to change the "size" 
+argument, which is a local variable, when the decoder changes the length of the 
+string. But the only way you know that is because the parameter declaration for 
+the second use of "size" in those functions, in modules uudecode.cpp and 
+hexbin.cpp, is "LONG& OutLen", and so the compiler uses call-by-reference. 
+
+On the other hand, for ISOTranslate, in module utils.cpp, which does the 
+translation of 2-byte or 3-byte UTF-8 characters to 1-byte ANSI, the "size" 
+parameter is declared as "LONG lSize", so the compiler uses call-by-value. Any 
+change the function makes to the string length does not change "size". Instead, 
+the programmer decided to return the new length as the value of the function -- 
+which in this case is discarded. Since the "size" variable isn't changed, 
+subsequent code reprocesses any leftover characters after the terminating zero 
+of the newly-shortened string. 
+
+The function calls looks similar, so it's an understandable error, especially if 
+more than one programmer was involved. The fix is to use the return value of 
+ISOTranslate to change the local "size" variable after the call, like this: 
+
+   size = ISOTranslate(buf, size, iCharsetIdx);
+
+That requires the addition of one machine-language instruction.
+
+Since we don't have a symbol table, it took quite a bit of detective work to 
+find the corresponding compiled machine code in the executable file. Here it is, 
+disassembled, but it will display well only if you are using a fixed-width font. 
+
+  0052463B: 83 F9 02            cmp     ecx,2                           if (iCharsetIdx > 2) {
+  0052463E: 7E 14               jle     00524654
+  00524640: FF B5 F8 FB FF FF   push    dword ptr [ebp+FFFFFBF8h]
+  00524646: 8B FB               mov     edi,ebx
+  00524648: E8 9E A2 02 00      call    0054E8EB                           ISOTranslate(buf, size, iCharsetIdx); }
+  0052464D: 8B BD BC FB FF FF   mov     edi,dword ptr [ebp+FFFFFBBCh]
+  00524653: 59                  pop     ecx
+  00524654: 8B 85 F8 FB FF FF   mov     eax,dword ptr [ebp+FFFFFBF8h]
+  0052465A: 85 C0               test    eax,eax                          if (size) {
+
+My patch replaces the mov instruction after the call with a jump to hijacked 
+bytes at the end of a rarely-used string. New hand-assembled code there 
+reproduces the mov instruction after the call, saves the return value of the 
+call to ISOTranslate in "size", then jumps back. Here are the two patched areas: 
+
+file loc  code loc
+0012464D  0052464D: 8B BD BC FB FF FF   mov  edi,dword ptr [ebp+FFFFFBBCh]
+  is changed to
+0012464D  0052464D: E9 45 96 0E 00      jmp  0060DC97
+00124652  00524652: 90                  nop
+(6 patched bytes, then...)
+00124653  00524653:  59                  pop  ecx
+
+The patch code near the end of the string "<!-- START REMOVE FOR LIGHT -->" is this:
+0020DC96  0060DC96: 00                  make the string end after the M of REMOVE
+0020DC97  0060DC97: 8B BD BC FB FF FF   mov  edi,dword ptr [ebp+FFFFFBBCh]  ;redo the instruction that was replaced with our jmp
+0020DC9D  0060DC9D: 89 85 F8 FB FF FF   mov  dword ptr [ebp+FFFFFBF8h],eax  ;store the result of ISOTranslate() in "size"
+0020DCA3  0060DCA3: E9 AB 69 F1 FF      jmp  00524653h                      ;return to after our jmp
+(18 patched bytes, then...)
+0020DCA8  0060DCA8: 25 72 65 67 6C...    "%regl..." (the start of next string)
+
+A quintessential hack, eh? I hope it works...
