@@ -1,7 +1,16 @@
+*** Version 1.3, 19 March 2022
+
+Changes to the program:
+ - Add the -l command line option to specify the name (and maybe pathname) for the log file.
+
+Changes to the fix_mbx.bat batch file
+ - allow the second argument to specify the name of the translation file
+ - allow the third argument to specify the name of the log file
+
 *** Version 1.2, 10 February 2022
 
 Changes to the program:
- - Add the -t command line option to specify the name and even pathname for the translations file.
+ - Add the -t command line option to specify the name (and maybe pathname) for the translations file.
  - Add the "checksync" option to verify that TOC entries point to messages in the MBX.
  - Increase the maximum search and replacement size from 50 to 100 bytes.
  - Fix bug: a search would sometimes match beyond the end of the valid data at the end of the file,

@@ -1,10 +1,17 @@
 @echo off
-rem Fix the UTF-8 characters and other problems in one Eudora mailbox, and maintain
-rem a series of backup files. If the mailbox name isn't an argument, we ask for it.
-rem Any second argument is passed to the Eudora_fix_mbx program, for example "-t=xxx".
-rem This batch file version is from 10 Feb 2022 at 4:12pm.
+rem Fix the UTF-8 characters and other problems in one Eudora mailbox using Eudora_fix_mbx,
+rem and maintain a series of backup files. 
+
+rem The mailbox name is the first argument; if not provided we ask for it.
+rem The name of the translation file can be specified as the optional second argument.
+rem The name of the log file can be specified as the optional third argument.
+rem If any of the arguments contain embedded blanks, enclose it in quotes.
+
+rem This batch file version is from 13 Feb 2022 at 5:57pm needs Eudora_fix_mbx version 1.3 or higher.
+
+if "%~2"=="" (set xlatefile="translations.txt") else (set xlatefile="%~2")
+if "%~3"=="" (set logfile="Eudora_fix_mbx.log") else (set logfile="%~3")
 set numbackups=5
-set logfile="Eudora_fix_mbx.log"
 set maxlogsize=1000000
 
 set mbxname=%1
@@ -30,7 +37,7 @@ if exist %mbxname%.toc copy /b %mbxname%.toc %mbxname%.toc.0.bak
 
 rem fix the mailbox and TOC files, which also adds to the log
 echo. >>%logfile%
-Eudora_fix_mbx %2 %mbxname%
+Eudora_fix_mbx -l=%logfile% -t=%xlatefile% %mbxname%
 set /a returnval=%ERRORLEVEL%
 rem errorlevel is 0 for "made changes", 1 for "made no changes", 
 rem   8 for "fatal error with no changes made", 12 for "fatal error with changes"
@@ -63,7 +70,7 @@ dir /OD %mbxname%.* | more +5 >>%logfile%
 rem The following code truncates the log file file if it has gotten too big,
 rem by repeatedly removing the first 100 lines until it isn't too big.
 :truncatelog
-FOR /F "usebackq" %%A IN ('%logfile%') DO set logsize=%%~zA
+FOR /F "usebackq delims=" %%A IN ('%logfile%') DO set logsize=%%~zA
 echo log file %logfile% uses %logsize% bytes
 if %logsize% leq %maxlogsize% goto done
 more +100 %logfile% > %logfile%.tmp

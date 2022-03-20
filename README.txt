@@ -1,7 +1,7 @@
 Eudora_fix_mbx: Repair UTF-8 character codes and problematic HTML in Eudora mailboxes
 
 This is a command-line (non-GUI) Windows program that modifies the data of Eudora
-mailboxes, and of the to/from and subject fields of table-of-contents (TOC) files,
+mailbox (MBX) files, and the address and subject fields of table-of-contents (TOC) files,
 in ways like this:
 
   - change UTF-8 characters that aren't rendered correctly by Eudora
@@ -10,11 +10,23 @@ in ways like this:
     so Eudora will move to a new line and not squash everything together
   - change Outlook-generated non-standard HTML into something Eudora deals correctly with
 
-This is freeware, and it lives at  https://github.com/LenShustek/Eudora_fix_mbx.
+This operates on the messages in the mailboxes you run it on. It doesn't install anything
+inside Eudora that runs automatically when new messages are received. You have to run
+it again for new messages after they have been received and put into a mailbox.
 
-You don't really have to understand all of the information below to use the program.
-If you are ok with the defaults, see the instructions.txt file for a cookbook way
-to install and run the program.
+What I do is move messages that I want fixed from "In" to a "_fixit" mailbox, then I use the
+fix_mbx batch file to run the program on that mailbox and maintain backups. Then from within
+Eudora I move the fixed messages to where I want them. Various people have devised semi-
+automated ways to do that, using a combination of Eudora filters and additional batch files.
+
+*** This is freeware that lives at https://github.com/LenShustek/Eudora_fix_mbx ****
+
+There is a lot of detailed information below, but you don't really have to understand it all 
+to use the program. If you are ok with the defaults, see the instructions.txt file for a
+cookbook way to install and run the program. In particular, it recommends using the fix_mbx
+batch file to maintain a series of backups of the mailbox files you are fixing.
+
+------ the details ------
 
 When used on system mailboxes (In, Out, Junk, and Trash) this should only be run when
 Eudora is not running, and a runtime check enforces that. For any other mailbox, we
@@ -36,7 +48,7 @@ the overall operation of the program:
    skipheaders           Don't do replacements in the header lines of messages
    skipbody              Don't do replacements in the body of messages
    skiptoc               Don't do replacements in the table-of-contents file
-   nologging             Don't do logging to Eudora_fix_mbx.log
+   nologging             Don't do logging to Eudora_fix_mbx.log (or the file specified by -l=)
    onlydo xx MB          Only look at messages within the specified number of bytes at
    onlydo xx KB            the end of the mailbox, if the mailbox is larger than that.
                            This speeds up processing for very large mailboxes.
@@ -68,7 +80,7 @@ The replacementstring can be an arbitrary sequence of:
    "quotedstring"        any printable characters except "
    'quotedstring'        any printable characters except '
     hexadecimal string   hexadecimal character codes, like 433A
-    *                    a request to insert the one character that 
+    *                    a request to insert the one character that
                             matched a !xx or !'c' in the searchstring
     <setmatch n>         set "match flag n"
     <clearmatch n>       clear "match flag n"
@@ -126,7 +138,7 @@ If the mailbox or path name contains embedded blanks, enclose it in quotes.
 If the mailbox name ends with ".mbx", it is removed. That allows the program to be run
 by dragging and dropping the mailbox file onto the program's icon. The downside of
 doing that is that an error reported at the end will disappear before you can read it.
-The "fix_mbx" batch file recommended in instructions.txt helps with that, and it 
+The "fix_mbx" batch file recommended in instructions.txt helps with that, and it
 maintains backup files, so try drag-and-dropping onto the batch file's icon instead.
 
 The translations.txt file is normally expected to be in the current directory. If you wish
@@ -134,8 +146,10 @@ to use a different name and/or location for the translations file, specify it as
   Eudora_fix_mbx     -t=filename.txt     mailboxname
   Eudora_fix_mbx  -t=path/filename.txt   mailboxname
 
-A status report about what changes were made (or what errors were found) is appended
-to the file Eudora_fix_mbx.log, unless you have specified "options nologging".
+A status report about what changes were made (or what errors were found) is normally appended
+to the file Eudora_fix_mbx.log, unless you have specified "options nologging". If you wish
+to use a different name and/or location for the log file, specify it using the
+  -l=filename.txt or -l=path/filename.txt command line option.
 
 The program returns the following values, which can be tested as %ERRORLEVEL% in a batch file:
    0 no errors, and changes were made to the mailbox and/or the table-of-contents file
@@ -144,6 +158,7 @@ The program returns the following values, which can be tested as %ERRORLEVEL% in
    12 a serious error occurred and changes might have been made to one of the files
 
 I don't guarantee this will work well for you, so be sure to keep backups of the
-MBX and TOC files in case you don't like what it did!
+MBX and TOC files in case you don't like what it did! I have compiled it so that
+it should run on any any version of Windows starting with XP from 2001.
 
-Len Shustek, September/October 2021, February 2022
+Len Shustek, September/October 2021, March 2022
