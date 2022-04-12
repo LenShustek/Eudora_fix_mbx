@@ -1,0 +1,139 @@
+A fix for Eudora's missing Message-Id header.
+L. Shustek, 12 April 2022
+
+To fix a bug that caused two Message-Id headers to be sent with "Send 
+Again" messages, version 7.1.0.9 of Eudora suppressed sending any of 
+them for any message, and depended instead on the mail server supplying 
+one. I suspect this was the code that was silently commented out to 
+prevent sending Message-ID headers stored in the Out mailbox: 
+
+File msgdoc.cpp, line 413, in function CMessageDoc::Read()
+   /*
+      // get the Message-Id header
+      char* msgid = HeaderContents(IDS_HEADER_MESSAGE_ID, m_Text);
+      if (msgid) {
+         // delete '<' and '>' characters
+         msgid[ strlen( msgid ) - 1 ] = '\0';
+         m_MessageId = &msgid[ 1 ];
+         delete [] msgid; }
+      else{
+         // must be a pre-existing message
+         AssignMessageId(); }
+    */
+
+Without that code, the Message-Id header is not read from the file, so 
+it isn't sent. Since the code is a comment and wasn't compiled, there is 
+no easy way to patch the executable binary file to reinstate it. 
+
+But it turns out that there is elsewhere what seems to be older unused code that 
+generates and sends the Message-Id header if it isn't in the out mailbox. Note 
+the comment below that they "use[d] to" do that, presumably before the 
+header was being created in function CCompMessageDoc::InitializeNew() in file 
+compmsgd.cpp and put into the Out mailbox. 
+
+File sendmail.cpp, line 3173, in function QCSMTPMessage::WriteHeaders()
+   if (UsingPOPSend) {
+      if (POPCmdGetReply(IDS_POP_SEND, NULL, buf, lBufSize) < 0)
+         goto fail; }
+   else {
+      if (SMTPCmdGetReply(IDS_SMTP_DATA, NULL, buf, lBufSize) < 0)
+         goto fail; }
+
+   // We use to build up and send the message-id header here.
+   // Now the Message-Id is in the MBX file so we don't have to do
+   // anything special.  I left the code below just in case we somehow
+   // send a message that does not have a message id assigned.  (Like maybe
+   // something from MAPI of command line...
+
+   if ( SMTPmsg->m_MessageId.IsEmpty() ) {
+      SMTPmsg->AssignMessageId();
+      CRString MIDHeader(IDS_HEADER_MESSAGE_ID);
+      if (SMTPmsg->m_ExtraHeaders.Find(MIDHeader) < 0) {
+         CString NewExtraHeaders;
+         NewExtraHeaders.Format("%s<%s>\r\n%s",
+                                (LPCTSTR)MIDHeader,
+                                (LPCTSTR)SMTPmsg->m_MessageId,
+                                (LPCTSTR)SMTPmsg->m_ExtraHeaders);
+         SMTPmsg->m_ExtraHeaders = NewExtraHeaders; } }
+         
+	// Extra headers
+	GetIniString(IDS_INI_EXTRA_HEADERS, buf, lBufSize);
+
+That code was unnecessary when the Message-Id header in the Out mailbox 
+was being sent, before the Send Again bugfix of version 7.1.0.9. Luckily 
+for us it was left there, as the comment says, "just in case". 
+
+So the trick to sending the header again is to ignore the test that 
+checks if the header is in the file: "if (SMTPmsg->m_MessageId.IsEmpty())". 
+
+It took the usual detective work to to isolate that code in the executable 
+file. My technique is to identify a unique string used nearby -- in this 
+case "%s<%s>\r\n%s" -- and find it in the file. Adjust its location by 
+the load address of the module (400000h), and then search for an 
+instruction in the disassembly of the binary code that uses that address 
+(in this case 61D504h) as an operand. That led to this section of the 
+667,137 lines of disassembly that is the sendmail code above: 
+
+  005010C2: 39 35 70 C0 67 00  cmp         dword ptr ds:[0067C070h],esi  if (UsingPOPSend)
+  005010C8: 74 0F              je          005010D9
+  005010CA: 56                 push        esi
+  005010CB: 68 30 05 00 00     push        530h                        decimal 1328 = IDS_POP_SEND
+  005010D0: E8 B1 BD FF FF     call        004FCE86                    POPCmdGetReply(IDS_POP_SEND,...)
+  005010D5: 59                 pop         ecx
+  005010D6: 59                 pop         ecx
+  005010D7: EB 10              jmp         005010E9
+  005010D9: 6A 01              push        1
+  005010DB: 56                 push        esi
+  005010DC: 68 45 06 00 00     push        645h                         decimal 1605 = IDS_SMTP_DATA
+  005010E1: E8 E9 BC FF FF     call        004FCDCF                     SMTPCmdGetReply(IDS_SMTP_DATA,...)
+  005010E6: 83 C4 0C           add         esp,0Ch
+  005010E9: 85 C0              test        eax,eax
+  005010EB: 0F 8C 48 06 00 00  jl          00501739                      if (...<0) goto fail
+  005010F1: 8B 1D 6C C0 67 00  mov         ebx,dword ptr ds:[0067C06Ch]
+  005010F7: 8B 83 C8 00 00 00  mov         eax,dword ptr [ebx+000000C8h]
+  005010FD: 8B 40 F4           mov         eax,dword ptr [eax-0Ch]
+  00501100: 3B C6              cmp         eax,esi                    if ( SMTPmsg->m_MessageId.IsEmpty() ) { 
+  00501102: 0F 85 8F 00 00 00  jne         00501197  <-- change to 6 nop's (90h) to force sending a unique Message-Id
+  00501108: E8 EF 86 F7 FF     call        004797FC                   SMTPmsg->AssignMessageId();
+  0050110D: 68 5A 06 00 00     push        65Ah                       1626 = IDS_HEADER_MESSAGE_ID, "Message-Id: "
+  00501112: 8D 45 A8           lea         eax,[ebp-58h]
+  00501115: 50                 push        eax
+  00501116: E8 2A 00 F0 FF     call        00401145                    CRString MIDHeader(IDS_HEADER_MESSAGE_ID)                      
+  0050111B: 8B 0D 6C C0 67 00  mov         ecx,dword ptr ds:[0067C06Ch]
+  00501121: 6A 00              push        0
+  00501123: FF 75 A8           push        dword ptr [ebp-58h]
+  00501126: 81 C1 04 01 00 00  add         ecx,104h
+  0050112C: FF 15 54 6C 5F 00  call        dword ptr ds:[005F6C54h]    if (SMTPmsg->m_ExtraHeaders.Find(MIDHeader) < 0) {
+  00501132: 85 C0              test        eax,eax
+  00501134: 7D 54              jge         0050118A
+  00501136: 8D 4D AC           lea         ecx,[ebp-54h]
+  00501139: FF 15 B0 68 5F 00  call        dword ptr ds:[005F68B0h]     CRString NewExtraHeaders  ??
+  0050113F: C6 45 FC 05        mov         byte ptr [ebp-4],5
+  00501143: A1 6C C0 67 00     mov         eax,dword ptr ds:[0067C06Ch]
+  00501148: 8B 88 04 01 00 00  mov         ecx,dword ptr [eax+00000104h]
+  0050114E: 8B 80 C8 00 00 00  mov         eax,dword ptr [eax+000000C8h]
+  00501154: 51                 push        ecx
+  00501155: 50                 push        eax
+  00501156: FF 75 A8           push        dword ptr [ebp-58h]
+  00501159: 8D 45 AC           lea         eax,[ebp-54h]
+  0050115C: 68 04 D5 61 00     push        61D504h                       "%s<%s>\r\n%s"
+  00501161: 50                 push        eax
+  00501162: FF 15 D0 6A 5F 00  call        dword ptr ds:[005F6AD0h]      NewExtraHeaders.Format(...)
+  00501168: 8B 0D 6C C0 67 00  mov         ecx,dword ptr ds:[0067C06Ch]
+  0050116E: 83 C4 14           add         esp,14h
+  00501171: 8D 45 AC           lea         eax,[ebp-54h]
+  00501174: 50                 push        eax
+  00501175: 81 C1 04 01 00 00  add         ecx,104h
+  0050117B: FF 15 F0 68 5F 00  call        dword ptr ds:[005F68F0h]     GetIniString(IDS_INI_EXTRA_HEADERS, buf, lBufSize);
+
+The patch was simply to change the jump after the IsEmpty() test to six
+1-byte no-operation opcodes, 90h. The location in the file is 00501102h
+minus the 400000h load point, or 101102h. 
+
+An alternative patch would be to prevent Eudora from putting the Message-Id 
+header in the Out mailbox by nullifying the call to AssignMessageId() when the 
+blank message is first created in function CCompMessageDoc::InitializeNew in 
+file compmsgd.cpp. But, in addition to that code being a little hard to find, it 
+might not work for replied-to or forwarded messages, and certainly wouldn't work 
+for Send Again. The patch above doesn't prevent the two Message-Ids from being 
+stored in the mailbox, but neither of them is sent. 
