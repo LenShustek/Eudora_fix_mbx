@@ -1,0 +1,59 @@
+    
+    The <fixattachment> replacement string
+    
+    This is a special kludge to fix attachment filenames that were truncated
+    by Eudora because the name was split by Outlook onto multiple lines and
+    Eudora only uses the first line.
+
+   This is a problem that happens as Eudora reads the message from the server
+   and processes the MIME-encoded file attachment. By the time the message is put
+   in the Eudora mbx file, the damage has already be done. But there is enough
+   evidence left in other header lines to enable us to repair the damage.
+
+   We expect (and verify) that we were triggered by this rule in translations.txt:
+
+   <body> '\r\nContent-Disposition: attachment;' *' ' '\r\n\tfilename="' = <fixattachment>
+
+   What should be in the message at the current position, somewhere after the
+   HTML body of the message text, is this:
+
+        \r\n
+        Content-Disposition: attachment; \r\n
+        \tfilename="filename_pt1"\r\n
+          filename_pt2\r\n
+          filename_pt3"; somejunk\r\n
+          morejunk\r\n
+       Attachment Converted: "truncatedpathname"
+
+  where there may be zero or more blanks after "attachment;".
+
+  The full filename originally was all of the parts concatenated, but
+  Eudora only uses filename_pt1. It prepends that with the path to its
+  attachment directory to create the truncatedpathname that it uses in
+  the new Attachment Converted header that it inserts into the mailbox.
+
+  Note the extra (bogus) terminating " that Eudora inserted at the end of
+  filename_pt1, which isn't in the data that it received from the mail server.
+
+  Of course sometimes the whole filename is on only one line. The only way we
+  can tell is if the next line does NOT start with a blank or a tab, in which case
+  it is probably another header keyword. So the heuristic that seems to work is
+  that the end of the original full filename is either  ";  or  "\r\nx, where x
+  is not blank or tab. No doubt we'll discover other cases that have to be added.
+
+  What we do is rename truncatedpathname to fullpathname, which we create by using
+  the directory path taken from the Attachment Converted truncatedpathname, followed
+  by the full pathname we reassembled. If the rename fails because the file exists,
+  we try adding extra digits 1, 2, ..., 9 just before the extension.
+
+  If the rename succeeds, we then replace all the text shown above with this:
+       Attachment Converted: "fullpathname"
+       <blank padding>
+
+  There are some strange effects that this can cause. Here's one:
+  - If you have put a copy of the message in another mailbox using shift-Transfer, there is
+  only one copy of any attachments they refer to. So if you use this on one of the message
+  copies to fix an attachment filename, the other copy's reference to the attachment will
+  be wrong because it isn't also updated to reflect the new name.
+  
+  L. Shustek, 6 May 2022
