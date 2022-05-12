@@ -204,7 +204,8 @@ C2 "&nbsp;"  = "&nbsp;"  ;remove extraneous circumflex-A
 <body> <ifmatch 3> <html td> "padding-left: " !'0' "%" = "padding-left: 0%" ;left-justified a USPS Informed Delivery image
 
 ;Fix attachment names that have been truncated because they were split by Outlook into multiple lines
-<body> '\r\nContent-Disposition: attachment;' *' ' '\r\n\tfilename="' = <fixattachment> ;fix truncated attachment name
+;This is commented out by default, in case you are using the patched executable instead.
+;<body> '\r\nContent-Disposition: attachment;' *' ' '\r\n\tfilename="' = <fixattachment> ;fix truncated attachment name
 
 
 ;Appendix: Here are some ideas for dealing with Emojis and other Unicode graphics.

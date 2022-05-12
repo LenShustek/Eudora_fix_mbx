@@ -1,0 +1,238 @@
+;translations_ASCII.txt: version of 5/5/2022 at 4:48pm
+;A file for the Eudora_fix_mbx program (version 1.4 or higher) that describes replacements
+;for common Unicode (UTF-8) codes and other sequences that Eudora doesn't display correctly.
+
+;This version translates into only the standard ASCII characters from hex 00 to hex 7F, which
+;  makes some of the replacements fairly cryptic. To use it, rename it to translations.txt.
+;For a version that translates into the Windows-1252 extended ASCII character set,
+;  which Eudora does seem to display correctly, use the supplied translations.txt.
+
+;****** section 1: program options
+
+;By default we allow Eudora to be running when fixing non-system mailboxes -- which should
+;be closed -- but not when fixing In, Out, Trash, or Junk. If you don't want Eudora running
+;ever when fixing mailboxes, uncomment the following line by removing the first semicolon:
+;options noeudora   ;never fix any mailboxes if Eudora is running
+
+;If you are running this on a very large mailbox and know that changes only need to be made
+;near the end, you can restrict replacements and speed things up by uncommenting this line:
+;options onlydo 10 MB  ;only scan the last chunk of very large mailboxes
+
+;By default we do replacements in the address and the subject fields of the
+;table-of-contents file. You can choose not do that that by uncommenting this line:
+;options skiptoc  ;don't make changes in the table-of-contents file
+
+;If we're reading the table-of-contents file, the following option asks to verify that all
+;entries point to valid message headers in the mailbox file. To not do that, comment it.
+options checksync  ;check that TOC and MBX are in sync
+
+;***** section 2: translation specifications
+
+;Replace UTF-8 hex codes that correspond to Windows-1252 codes 80 to 9F
+;See https://www.i18nqa.com/debug/table-iso8859-1-vs-windows-1252.html
+E282AC = 'E'   ;Euro Sign
+E2809A = "'"   ;Single Low-9 Quotation Mark
+C692   = 'f'   ;Latin Small Letter F With Hook
+E2809E = '"'   ;Double Low-9 Quotation Mark
+E280A6 = "..." ;Horizontal Ellipsis
+E280A0 = 't'   ;Dagger
+E280A1 = 't'   ;Double Dagger
+CB86   = '^'   ;Modifier Letter Circumflex Accent
+E280B0 = '%'   ;Per Mille Sign
+C5A0   = 'S'   ;Latin Capital Letter S With Caron
+E280B9 = '<'   ;Single Left-Pointing Angle Quotation Mark
+C592   = 'OE'  ;Latin Capital Ligature OE
+C5BD   = 'Z'   ;Latin Capital Letter Z With Caron
+E28098 = "'"   ;Left Single Quotation Mark
+E28099 = "'"   ;Right Single Quotation Mark
+E2809C = '"'   ;Left Double Quotation Mark
+E2809D = '"'   ;Right Double Quotation Mark
+E280A2 = '.'   ;Bullet
+E28093 = '-'   ;En Dash 
+E28094 = '-'   ;Em Dash
+CB9C   = '~'   ;Small Tilde
+E284A2 = 'tm'  ;Trade Mark Sign
+C5A1   = 's'   ;Latin Small Letter S With Caron
+E280BA = '>'   ;Single Right-Pointing Angle Quotation Mark
+C593   = 'oe'  ;Latin Small Ligature OE
+C5BE   = 'z'   ;Latin Small Letter Z With Caron
+C5B8   = 'Y'   ;Latin Capital Letter Y With Diaeresis
+
+;Replace UTF-8 hex codes from U+00A0 to U+00FF with whatever ASCII characters seem visually close
+;See https://www.utf8-chartable.de/
+C2A0 = ' '   ;NO-BREAK SPACE
+C2A1 = '!'   ;INVERTED EXCLAMATION MARK
+C2A2 = 'c'   ;CENT SIGN
+C2A3 = 'L'   ;POUND SIGN
+C2A4 = 'O'   ;CURRENCY SIGN
+C2A5 = 'Y'   ;YEN SIGN
+C2A6 = '|'   ;BROKEN BAR
+C2A7 = 'S'   ;SECTION SIGN
+C2A8 = ':'   ;DIAERESIS
+C2A9 = 'c'   ;COPYRIGHT SIGN
+C2AA = 'a'   ;FEMININE ORDINAL INDICATOR
+C2AB = '<'   ;LEFT-POINTING DOUBLE ANGLE QUOTATION MARK
+C2AC = '~'   ;NOT SIGN
+C2AD = '-'   ;SOFT HYPHEN
+C2AE = 'R'   ;REGISTERED SIGN
+C2AF = '-'   ;MACRON
+C2B0 = 'o'   ;DEGREE SIGN
+C2B1 = '+-'  ;PLUS-MINUS SIGN
+C2B2 = '2'   ;SUPERSCRIPT TWO
+C2B3 = '3'   ;SUPERSCRIPT THREE
+C2B4 = '`'   ;ACUTE ACCENT
+C2B5 = 'u'   ;MICRO SIGN
+C2B6 = 'P'   ;PILCROW SIGN
+C2B7 = '.'   ;MIDDLE DOT
+C2B8 = ','   ;CEDILLA
+C2B9 = '1'   ;SUPERSCRIPT ONE
+C2BA = 'o'   ;MASCULINE ORDINAL INDICATOR
+C2BB = '>'   ;RIGHT-POINTING DOUBLE ANGLE QUOTATION MARK
+C2BC = '/4'  ;VULGAR FRACTION ONE QUARTER
+C2BD = '/2'  ;VULGAR FRACTION ONE HALF
+C2BE = '34'   ;VULGAR FRACTION THREE QUARTERS
+C2BF = '?'   ;INVERTED QUESTION MARK
+C380 = 'A'   ;LATIN CAPITAL LETTER A WITH GRAVE
+C381 = 'A'   ;LATIN CAPITAL LETTER A WITH ACUTE
+C382 = 'A'   ;LATIN CAPITAL LETTER A WITH CIRCUMFLEX
+C383 = 'A'   ;LATIN CAPITAL LETTER A WITH TILDE
+C384 = 'A'   ;LATIN CAPITAL LETTER A WITH DIAERESIS
+C385 = 'A'   ;LATIN CAPITAL LETTER A WITH RING ABOVE
+C386 = 'AE'  ;LATIN CAPITAL LETTER AE
+C387 = 'C'   ;LATIN CAPITAL LETTER C WITH CEDILLA
+C388 = 'E'   ;LATIN CAPITAL LETTER E WITH GRAVE
+C389 = 'E'   ;LATIN CAPITAL LETTER E WITH ACUTE
+C38A = 'E'   ;LATIN CAPITAL LETTER E WITH CIRCUMFLEX
+C38B = 'E'   ;LATIN CAPITAL LETTER E WITH DIAERESIS
+C38C = 'I'   ;LATIN CAPITAL LETTER I WITH GRAVE
+C38D = 'I'   ;LATIN CAPITAL LETTER I WITH ACUTE
+C38E = 'I'   ;LATIN CAPITAL LETTER I WITH CIRCUMFLEX
+C38F = 'I'   ;LATIN CAPITAL LETTER I WITH DIAERESIS
+C390 = 'D'   ;LATIN CAPITAL LETTER ETH
+C391 = 'N'   ;LATIN CAPITAL LETTER N WITH TILDE
+C392 = 'O'   ;LATIN CAPITAL LETTER O WITH GRAVE
+C393 = 'O'   ;LATIN CAPITAL LETTER O WITH ACUTE
+C394 = 'O'   ;LATIN CAPITAL LETTER O WITH CIRCUMFLEX
+C395 = 'O'   ;LATIN CAPITAL LETTER O WITH TILDE
+C396 = 'O'   ;LATIN CAPITAL LETTER O WITH DIAERESIS
+C397 = 'x'   ;MULTIPLICATION SIGN
+C398 = 'O'   ;LATIN CAPITAL LETTER O WITH STROKE
+C399 = 'U'   ;LATIN CAPITAL LETTER U WITH GRAVE
+C39A = 'U'   ;LATIN CAPITAL LETTER U WITH ACUTE
+C39B = 'U'   ;LATIN CAPITAL LETTER U WITH CIRCUMFLEX
+C39C = 'U'   ;LATIN CAPITAL LETTER U WITH DIAERESIS
+C39D = 'Y'   ;LATIN CAPITAL LETTER Y WITH ACUTE
+C39E = 'E'   ;LATIN CAPITAL LETTER THORN
+C39F = 'S'   ;LATIN SMALL LETTER SHARP S
+C3A0 = 'a'   ;LATIN SMALL LETTER A WITH GRAVE
+C3A1 = 'a'   ;LATIN SMALL LETTER A WITH ACUTE
+C3A2 = 'a'   ;LATIN SMALL LETTER A WITH CIRCUMFLEX
+C3A3 = 'a'   ;LATIN SMALL LETTER A WITH TILDE
+C3A4 = 'a'   ;LATIN SMALL LETTER A WITH DIAERESIS
+C3A5 = 'a'   ;LATIN SMALL LETTER A WITH RING ABOVE
+C3A6 = 'ae'  ;LATIN SMALL LETTER AE
+C3A7 = 'c'   ;LATIN SMALL LETTER C WITH CEDILLA
+C3A8 = 'e'   ;LATIN SMALL LETTER E WITH GRAVE
+C3A9 = 'e'   ;LATIN SMALL LETTER E WITH ACUTE
+C3AA = 'e'   ;LATIN SMALL LETTER E WITH CIRCUMFLEX
+C3AB = 'e'   ;LATIN SMALL LETTER E WITH DIAERESIS
+C3AC = 'i'   ;LATIN SMALL LETTER I WITH GRAVE
+C3AD = 'i'   ;LATIN SMALL LETTER I WITH ACUTE
+C3AE = 'i'   ;LATIN SMALL LETTER I WITH CIRCUMFLEX
+C3AF = 'i'   ;LATIN SMALL LETTER I WITH DIAERESIS
+C3B0 = 'o'   ;LATIN SMALL LETTER ETH
+C3B1 = 'n'   ;LATIN SMALL LETTER N WITH TILDE
+C3B2 = 'o'   ;LATIN SMALL LETTER O WITH GRAVE
+C3B3 = 'o'   ;LATIN SMALL LETTER O WITH ACUTE
+C3B4 = 'o'   ;LATIN SMALL LETTER O WITH CIRCUMFLEX
+C3B5 = 'o'   ;LATIN SMALL LETTER O WITH TILDE
+C3B6 = 'o'   ;LATIN SMALL LETTER O WITH DIAERESIS
+C3B7 = '/'   ;DIVISION SIGN
+C3B8 = 'o'   ;LATIN SMALL LETTER O WITH STROKE
+C3B9 = 'u'   ;LATIN SMALL LETTER U WITH GRAVE
+C3BA = 'u'   ;LATIN SMALL LETTER U WITH ACUTE
+C3BB = 'u'   ;LATIN SMALL LETTER U WITH CIRCUMFLEX
+C3BC = 'u'   ;LATIN SMALL LETTER U WITH DIAERESIS
+C3BD = 'y'   ;LATIN SMALL LETTER Y WITH ACUTE
+C3BE = 'd'   ;LATIN SMALL LETTER THORN
+C3BF = 'y'   ;LATIN SMALL LETTER Y WITH DIAERESIS
+CEBC = 'u'   ;Greek lowercase Mu (micro)
+ 
+;Replace a selection of other common 3-byte UTF-8 hex codes.
+E28080 = " "     ;En quad
+E28081 = "  "    ;Em quad
+E2808B = ""      ;zero-width space
+E2808C = ""      ;zero-width non-joiner
+E2808D = <nothing>  ;zero-width joiner
+E28090 = "-"     ;hyphen
+E28092 = "-"     ;figure dash
+E280A3 = ">"     ;triangular bullet
+E280AF = " "     ;narrow no-break space
+E28183 = "-"     ;hyphen bullet
+E29885 = "*"     ;black star
+E29D99 = "|"     ;vertical bar
+EFBBBF = ""      ;UTF-8 byte order mark
+EFBFBD = "?"     ;replacement character (subsituted for a bad code)
+
+;Replace some bogus appearances of circumflex-A that we think result from a Eudora bug
+C2 ' '       = ' '       ;remove extraneous circumflex-A
+C2 0D        = 00 0D     ;remove extraneous circumflex-A (00 first in case 0A follows)
+C2 "&nbsp;"  = "&nbsp;"  ;remove extraneous circumflex-A
+;C2 = <nothing>           ;maybe remove ALL remaining pesky circumflex-A characters?
+
+;Prevent text blocks from being squashed by Eudora because they contain only naked linefeeds.
+!0d 0a !0d = * 0d *    ; change isolated linefeeds to carriage return
+
+;Fix Outlook-generated messages so Eudora doesn't insert extra blank lines when replying.
+<body> <ignorecase> "<p class=MsoNormal>" = "" <setmatch 1>     ;remove Outlook 0-margin paragraphs
+<body> <ignorecase> '<p class="MsoNormal">' = "" <setmatch 1>   ;remove Outlook 0-margin paragraphs
+<body> <ignorecase> <ifmatch 1> "</p>" = "<br>" <clearmatch 1>  ;and replace with linebreak
+
+<body> <ignorecase> "<p class=MsoPlainText>" = "" <setmatch 2>     ;remove Outlook 0-margin paragraphs
+<body> <ignorecase> '<p class="MsoPlainText">' = "" <setmatch 2>   ;remove Outlook 0-margin paragraphs
+<body> <ignorecase> <ifmatch 2> "</p>" = "<br>" <clearmatch 2>  ;and replace with linebreak
+
+;Make scanned mail images from USPS "Informed Delivery" be left-justified,
+;by changing padding-left=x% to padding-left=0% in table cell data
+<headers> "From: USPS Informed Delivery" = <nochange> <setmatch 3> ;detected a USPS Informed Delivery message
+<body> <ifmatch 3> <html td> "padding-left: " !'0' "%" = "padding-left: 0%" ;left-justified a USPS Informed Delivery image
+
+;Fix attachment names that have been truncated because they were split by Outlook into multiple lines
+;This is commented out by default, in case you are using the patched executable instead.
+;<body> '\r\nContent-Disposition: attachment;' *' ' '\r\n\tfilename="' = <fixattachment> ;fix truncated attachment name
+
+
+;Appendix: Here are some ideas for dealing with Emojis and other Unicode graphics.
+; You can "uncomment" and activate the replacement rules by removing the initial semicolon.
+
+; There are over 3000 Unicode emojis that are encoded using 3 or 4 bytes, so it is hopeless to
+; try to deal with them all. Eudora knows how to display 34 of them encoded as "emoticon" ASCII 
+; character sequences, but only in the body of messages, not in subject lines, and only if not 
+; preceded or followed by an alphabetic or numeric character unless it is from another emoticon. 
+; It displays the images that are in Eudora directories Emoticons, Emoticons24, or Emoticons32.
+; When you send, reply, or forward the message, they are sent as the ASCII sequences unless you
+; have set <X-Eudora-Option:SendEmoticonsAsImages=1>, in which case they are sent as images.
+; If you send them as ASCII, most mail clients other than Eudora (Gmail, Outlook, and Roundcube, 
+; for example) will not display the emojis even though they would have if they were UTF-8 encoded.
+
+;If you are happy with Eudora's behavior for emoticons, here are two easy cases to try by uncommenting.
+;(The replacements are in pieces only so Eudora doesn't show them as graphics if this file is emailed!) 
+;E298B9 = ":-" "("   ;sad face
+;E298BA = ":-" ")"   ;smiley face
+;You can add more. In Eudora's Emoticon image directories, the characters before the space in the
+;name are the ASCII character sequences it looks for, with !xx representing a character code in hex.
+;The list of official Unicode Emojis you could translate is here: https://unicode-table.com/en/emoji/.
+
+;Instead of doing the the codes one at a time, you could specify blocks of 64
+;3-byte Unicode characters at a time with rules like this:
+;E298 !00 = "(O)"      ;replace Unicode graphics codes U+2600 through U+263F with (O)
+;E299 !00 = "(O)"      ;replace Unicode graphics codes U+2640 through U+267F with (O)
+
+;Here's an even bigger group of 4096 Unicode emoji-like pictograms, 
+;all of which are displayed in Eudora as four weird characters:
+;F09F !00 !00 = "(O)"  ;replace Unicode graphics codes U+1F000 through U+1FFFF with (O)
+
+;Remember that if you specify those block translations, the message forever loses
+;any encoding of what the specific original graphic was.
+
+;end of translations_ASCII.txt
