@@ -1,0 +1,732 @@
+On ways to fix the Eudora truncated attachment filename problem
+---------------------------------------------------------------
+
+File attachments are sent via email using the MIME (Multipupose Internet Mail Extensions) 
+standards. When Eudora was written, and for the next 25 years, the the suggested filename 
+for encoded attachments was always on a single line of the message text, and that's what 
+Eudora was written to expect. 
+
+Recently, however, Outlook has started breaking up long filenames onto multiple lines. 
+Eudora can't handle that, and uses only what is on the first line. Depending on whether 
+the application type is specified, that might also result in the file extension not being 
+present.
+
+There are two approaches to fixing the problem, and I have experimented with both.
+
+Option 1: The original intended filename is still present in other header lines that 
+Eudora hasn't messed with, so it's possible -- using the Eudora_fix_mbx utility -- to fix 
+the problem after the fact by renaming the attachment file to that and changing the Eudora 
+mailbox so it points to the new name. The latest version 1.4 of the utility implements 
+that with a special <fixattachment> replacement option, but the translation that causes it 
+to happen is commented out by default. 
+
+Details about how it works are below. Note that when you use it, any previously-made 
+copies of the message in other mailboxes will point to a now non-existent attachment file. 
+
+Option 2: After implementing and testing option 1, I started looking into the Eudora 
+source code to find out what causes the problem. Much to my surprise, it turns out to be 
+possible to patch the Eudora executable program fix it, by having Eudora not treat a CRLF 
+as the end of a quoted string in headers. This is a little more dangerous, since there is 
+the possibility of unintended consequences in other situations, but I haven't yet found 
+any. 
+
+I think this change works only for POP servers, because Eudora uses duplicated and 
+slightly modified code for IMAP servers. But if there is an audience for it I could create 
+a slightly different patch that works for them. 
+
+Obviously if you use the patched executable, there's no reason to have Eudora_fix_mbx try 
+to fix the problem. 
+
+Nerd alert: The rest of this disquisition contains the internal gory details of both these 
+approaches, plus some of what I went through to develop the fixes. You don't need to know 
+any of any of what follows to use either of the fixes; it's here only for your amusement. 
+
+
+Len Shustek
+12 May 2022
+
+
+APPROACH #1: fixing the mailbox after the fact
+----------------------------------------------
+ 
+The <fixattachment> replacement string for Eudora_fix_mbx translations is a special kludge 
+to fix attachment filenames that were truncated by Eudora because the name was split by 
+Outlook onto multiple lines and Eudora only uses the first line. 
+
+This is a problem that happens as Eudora reads the message from the server and processes 
+the MIME-encoded file attachment. By the time the message is put in the Eudora mbx file, 
+the damage has already be done. But there is enough evidence left in other header lines to 
+enable us to repair the damage. 
+
+We expect (and verify) that we were triggered by this rule in translations.txt: 
+
+  <body> '\r\nContent-Disposition: attachment;' *' ' '\r\n\tfilename="' = <fixattachment> 
+
+What should be in the message at the current position, somewhere after the HTML body of 
+the message text, is this: 
+
+        \r\n
+        Content-Disposition: attachment; \r\n
+        \tfilename="filename_pt1"\r\n
+          filename_pt2\r\n
+          filename_pt3"; somejunk\r\n
+          morejunk\r\n
+       Attachment Converted: "truncatedpathname"
+
+where there may be zero or more blanks after "attachment;". 
+
+The full filename originally was all of the parts concatenated, but Eudora only uses 
+filename_pt1. It prepends that with the path to its attachment directory to create the 
+truncatedpathname that it uses in the new Attachment Converted header that it inserts into 
+the mailbox. 
+
+Note the extra (bogus) terminating " that Eudora inserted at the end of filename_pt1, 
+which isn't in the data that it received from the mail server. 
+
+Of course sometimes the whole filename is on only one line. The only way we can tell is if 
+the next line does NOT start with a blank or a tab, in which case it is probably another 
+header keyword. So the heuristic that seems to work, which <fixattachment> implements, is 
+that the end of the original full filename is either "; or "\r\nx, where x is not blank or 
+tab. We might discover other cases that have to be added as we see more message variations. 
+
+What we do is rename the file truncatedpathname to fullpathname, which we create by using 
+the directory path taken from the beginning of the Attachment Converted truncatedpathname, 
+followed by the full pathname we reassembled from the filename subpart of the 
+Content-Disposition header lines. If the rename fails because the file exists, we try 
+adding extra digits 1, 2, ..., 9 just before the extension. 
+
+If the rename succeeds, we then replace all the header text shown above with this: 
+
+       Attachment Converted: "fullpathname"
+       <blank padding>
+
+There are some strange effects that this can cause. Here's one: If you have put a copy 
+of the message in another mailbox using shift-Transfer, there is only one copy of any 
+attachments they refer to. So if you use this on one of the message copies to fix an 
+attachment filename, the other copy's reference to the attachment will be wrong because it 
+isn't also updated to reflect the new name. 
+
+This after-the-fact mailbox repair works, but after developing it I spent a lot of time
+working on a better alternative: fixing the bug inside Eudora itself.
+  
+
+APPROACH #2: patching eudora.exe to handle multi-line MIME headers
+------------------------------------------------------------------
+
+The MIME structure of messages is described in a series of long and complicated RFCs: 
+2045, 2046, 2047, 2048 (updated by 4288 and 4289) and 2049. In particular, 2047 describes 
+extensions to RFC 822 to allow non-ASCII text in header fields. 
+
+Multipart MIME messageS start with this in the top-level header part of the message:
+
+   MIME-Version: 1.0
+   Content-Type: multipart/mixed;
+      boundary="bizarrelongstring"
+
+Then in the body, each part is delimited by --bizarrelongstring and has its own set 
+of headers, followed by a blank line and then the body of that part. Note that parts can 
+be nested and a part can establish its own boundary string for its subparts. 
+
+   --bizarrelongstring                            (this is the start of part 1,
+   Content-Type: multipart/alternative;             which has nested alternative subparts
+      boundary="2ndbizarrelongstring"                 using a different boundary string)
+   
+   --2ndbizarrelongstring                            (first part1 subpart)
+   Content-Type=text/plain; charset="iso-8859-1"
+   Content-Transfer-Encoding: quoted-printable
+   
+   this is plain message body text
+   
+   --2ndbizarrelongstring                            (second part1 subpart)
+   Content-Type: text/html; charset="iso-8859-1"
+   Content-Transfer-Encoding: quoted-printable
+   
+   <html> ....
+   </html>
+   
+   --2ndbizarrelongstring--                        (end marker for part 1)
+   
+   --bizarrelongstring                            (start of part 2, an encoded attachment)
+   Content-Type: application/....
+   Content-Description: ....
+   Content-Disposition: attachment;
+     filename="......"; size=nnnn;
+     creation-date="..."
+   Content-Transfer-Encoding: base64
+   
+   base64encodedlines
+   base64encodedlines
+   base64encodedlines
+
+   --bizarrelongstring--                           (end of part 2)
+   
+Eudora changes the lines starting with Content-Transfer-Encoding into
+
+   Attachment Converted: "C:\eudora\attachments\2022\..."
+
+
+Eudora's code for processsing MIME
+
+Routines in mime.cpp deal with MIME boundaries and recursive nesting of parts.
+At line 1634 in GenericReader::ReadIt, it gets the suggested filename that has been parsed as an attribute
+    AttributeElement *AE = hd->GetAttribute(CRString(IDS_MIME_CONTENT_DISP_FILENAME));
+
+ In header.cpp at line 139 it assumes that CR LF ends a header, but it's unclear whether this is for MIME.
+ 
+      // If we have a return, we've hit the end of a header field the header
+      // can only legally end in ExpectText or ExpectSem or ExpectVersion
+      case Special:
+         if (l822s.Token[0] == '\r')
+            break;      // Skip first part of newline
+         else if (l822s.Token[0] == '\n') {
+            if (state != ExpectText && state != ExpectSem && state != ExpectVersion)
+               grokked = FALSE;
+            state = ExpectHeaderName;
+            if(!m_bIgnoreDisc) {
+               g_pPOPInboxFile->Tell(&lLastNewline);
+               ASSERT(lLastNewline >= 2);
+               lLastNewline -= 2;   }
+            break; }
+ 
+At line 436, it calls AddAttribute if it parsed quoted text
+ 
+         case ExpectValue:
+            if (tokenType == LinearWhite)
+               break;   // skip this
+            if (tokenType == Atom || tokenType == QText) {
+               if (!AddAttribute((char *)l822s.Token)) {
+                  tokenType = ErrorToken;
+                  goto out;}
+               state = ExpectSem;
+               if(!m_bIgnoreDisc) {
+                  g_pPOPInboxFile->Tell(&lastParam);
+                  ASSERT(lastParam >= 0); } }
+            else {
+               grokked = FALSE;
+               EXPECT_TEXT; }
+            break;
+ 
+At line 476 it handles the Content-Disposition and Filename= subparts
+ 
+    int HeaderDesc::AddAttribute(const char* Value) {
+      AttributeElement* AE = DEBUG_NEW_MFCOBJ_NOTHROW AttributeElement(attributeName, Value);
+      if (!AE)
+         return (FALSE);
+      // This is a hack, we really should be parsing out the disposition into its own field
+      if (!CompareRStringI(IDS_MIME_HEADER_CONTENT_DISP, attributeName))
+         m_TLMime->ChangeInfo(NULL, NULL, NULL, Value);
+      // This is a hack, we really should be parsing out the disposition into its own field
+      if (!CompareRStringI(IDS_MIME_CONTENT_DISP_FILENAME, attributeName))
+         m_TLMime->AddContentParam(attributeName, Value);
+      else
+         m_TLMime->AddParam(attributeName, Value);
+      if (Attributes.AddTail(AE))
+         return (TRUE);
+      else
+         return (FALSE); }
+         
+All that is interesting, but the actual tokenizing of the MIME headers occurs in function 
+Lex822() in file lex822.cpp, which is called repeatedly in the main loop of Read() in 
+header.cpp. (RFC822 is the now-obsolete standard for text message formats.) Note that the 
+maximum size of a token it collects is (lex822.h line 70) 256 bytes. 
+  
+At line 288 it processes characters thusly if the current state is "collecting quoted text":
+  
+      case CollectQText:
+      if (Token[TokenSpot] == '\\')
+         ADD(*Spot++);
+      else
+         switch (charClass) {
+         case QUOTE822:
+            Spot++; // skip the quote
+            if (!InStructure) {
+               InStructure++; // we weren't in a quote, but we are now
+               break; }
+            // quote has ended; fall-through is deliberate
+         case CR822:
+            returnToken = QText;
+            State = CollectLine;
+            break;
+         default:
+            ADD(*Spot++);
+            break; }
+      break;
+ 
+Note that a \r carriage return (class CR822) causes the quoted string to be terminated
+and returned as completed token. That's the problem!
+  
+Big switch statements are often compiled into an indexed jump through a table, but the 
+code for that small switch(charClass) statement inside case CollectQText has been 
+optimized by the compiler to look like this: 
+
+      if (charClass == CR822)
+         goto stopquote;
+      if (charClass == QUOTE822) {
+         Spot++; // skip the quote
+         if (InStructure)
+            goto stopquote;
+         InStructure=1;
+         goto dobreak;}
+      ADD(*spot++);
+      goto dobreak;
+   stopquote:
+      returnToken= Qtext;
+      State = CollectLine;
+   dobreak: 
+      break for switch(state), ie go to the top of the "do { if(Spot >= End)" loop
+   
+To cause it to skip a CR in a quoted string instead of treating it as the end of the 
+token, and to skip the following LF, I initially created a patch that changed the first 
+two lines to: 
+ 
+  if (InStructure && (charClass == CR822 || charClass == LF822)) {
+      Spot++; // in an open quoted string, skip CR or LF, and keep going
+      goto dobreak; }
+  
+I tried that, and it doesn't work! After using the "WinDbg Preview" debugger to set 
+breakpoints and examine registers and memory as Eudora processes a quoted filename string, 
+I found out why. The problem is that line 215 in lex822.cpp does a check for "Is this a 
+folded CRLF?" (a linefeed followed by space or tab), and if so turns the charClass for
+that linefeed into SPACE822. Rather than disable that code, which must be there for some 
+unrelated reason, I switched to doing the test on the actual characters instead of their
+class. 
+
+  if (Instructure && (*spot == '\r' || *spot == '\n')) // look at the actual character
+      Spot++; // in an open quoted string, skip CR or LF, and keep going
+      goto dobreak; }
+        
+That is the fix that works.
+
+Ok, so how did I find the right place within the 667,142 machine-language instructions of 
+the executable program to insert a jump to the patch? By looking for unique constants that 
+are referenced by code in the vicinity. 
+ 
+One candidate is the Class822 table at the start of lex822.cpp, which starts with the 
+following sequence of bytes that seems reasonably unique: 
+
+     2 2 2 2 2 2 2 2 2 6 4 2 2 3 2 2 2 2...
+     
+Unfortunately that sequence appears in *two* places in the executable: 1FDB58 and 1FE3B0. 
+That's because identical copies of the table appear in Lex822.cpp, which references it 4 
+times, and in ImapLex822.cpp, which references it three times. The code is *almost* 
+identical, but not exactly. (This means that if this patch works for POP, we will have to 
+do it again for IMAP.) 
+ 
+Adding the load address of 400000, the candidate references are 5FDB58, which has 4 
+matches in the disassembly, and 5FE3B0, which has 3 matches. The conclusion is that the 
+Class822 table used by Lex822.cpp is at 5FDB58, since it's the one with 4 references. 
+ 
+Looking near the instructions that reference that data led to finding and annotating the 
+disassembled code for Token822Enum Lex822State::Lex822() in lex822.cpp, shown below, and 
+developing a machine code patch that implements the above source code changes. 
+
+Note that we have applied this patch to an executable that already has the previous patches
+that fixed other issues: the doubled-letter problem, and the missing message ID problem.
+ 
+   file      code
+ 000552BF  004552BF: 51                 push        ecx             ***************   Token822Enum Lex822State::Lex822()
+ 000552C0  004552C0: 53                 push        ebx
+ 000552C1  004552C1: 55                 push        ebp
+ 000552C2  004552C2: 56                 push        esi
+ 000552C3  004552C3: 57                 push        edi
+ 000552C4  004552C4: 8B F0              mov         esi,eax
+ 000552C6  004552C6: 8B 06              mov         eax,dword ptr [esi]
+ 000552C8  004552C8: 33 DB              xor         ebx,ebx                     ebx is always a contstant zero??
+ 000552CA  004552CA: 3B C3              cmp         eax,ebx
+ 000552CC  004552CC: 6A 0A              push        0Ah
+ 000552CE  004552CE: 5D                 pop         ebp
+ 000552CF  004552CF: 89 44 24 10        mov         dword ptr [esp+10h],eax
+ 000552D3  004552D3: 75 31              jne         00455306                     if (State == Init822)
+ 000552D5  004552D5: 8D 86 08 01 00 00  lea         eax,[esi+00000108h]
+ 000552DB  004552DB: C7 06 01 00 00 00  mov         dword ptr [esi],1
+ 000552E1  004552E1: 89 9E 04 01 00 00  mov         dword ptr [esi+00000104h],ebx
+ 000552E7  004552E7: 89 86 0C 09 00 00  mov         dword ptr [esi+0000090Ch],eax
+ 000552ED  004552ED: 89 86 08 09 00 00  mov         dword ptr [esi+00000908h],eax
+ 000552F3  004552F3: 66 89 9E 10 09 00  mov         word ptr [esi+00000910h],bx
+                     00
+ 000552FA  004552FA: 89 9E 18 09 00 00  mov         dword ptr [esi+00000918h],ebx
+ 00055300  00455300: 89 9E 14 09 00 00  mov         dword ptr [esi+00000914h],ebx
+ 00055306  00455306: 66 C7 86 12 09 00  mov         word ptr [esi+00000912h],1         ReinitToken = TRUE;
+                     00 01 00
+ 0005530F  0045530F: 8B 86 08 09 00 00  mov         eax,dword ptr [esi+00000908h] ***** do {
+ 00055315  00455315: 3B 86 0C 09 00 00  cmp         eax,dword ptr [esi+0000090Ch]       if (Spot >= End)
+ 0005531B  0045531B: 72 05              jb          00455322
+ 0005531D  0045531D: E8 2B 07 00 00     call        00455A4D                        LexFill()
+ 00055322  00455322: 8B 86 08 09 00 00  mov         eax,dword ptr [esi+00000908h]
+ 00055328  00455328: 0F B6 08           movzx       ecx,byte ptr [eax]              charClass = (Char822Enum)Class822[*Spot];
+ 0005532B  0045532B: 0F B6 B9 58 DB 5F  movzx       edi,byte ptr [ecx+005FDB58h]    Class822[]
+                     00
+ 00055332  00455332: 83 FF 03           cmp         edi,3
+ 00055335  00455335: 75 0A              jne         00455341
+ 00055337  00455337: 39 5C 24 10        cmp         dword ptr [esp+10h],ebx
+ 0005533B  0045533B: 0F 84 EA 02 00 00  je          0045562B
+ 00055341  00455341: 8B 8E 0C 09 00 00  mov         ecx,dword ptr [esi+0000090Ch]
+ 00055347  00455347: 49                 dec         ecx
+ 00055348  00455348: 3B C1              cmp         eax,ecx
+ 0005534A  0045534A: 73 0D              jae         00455359
+ 0005534C  0045534C: 0F B6 40 01        movzx       eax,byte ptr [eax+1]             nextClass = (Char822Enum)((Spot < End - 1)? Class822[Spot[1]] : LexFill());
+ 00055350  00455350: 0F B6 80 58 DB 5F  movzx       eax,byte ptr [eax+005FDB58h]     Class822[]
+                     00
+ 00055357  00455357: EB 05              jmp         0045535E
+ 00055359  00455359: E8 EF 06 00 00     call        00455A4D                         LexFill()
+ 0005535E  0045535E: 8B 16              mov         edx,dword ptr [esi]
+ 00055360  00455360: 83 FA 09           cmp         edx,9                            if (State == ReceiveError)                       
+ 00055363  00455363: 0F 84 C6 02 00 00  je          0045562F                            return(ErrorToken);
+ 00055369  00455369: 39 9E 14 09 00 00  cmp         dword ptr [esi+00000914h],ebx   if (UhOh && nextClass==CR822 || origState == Init822 && charClass == DOT822 && nextClass == CR822)
+ 0005536F  0045536F: 74 09              je          0045537A                                                  3                     0                       0fH                    3
+ 00055371  00455371: 83 F8 03           cmp         eax,3
+ 00055374  00455374: 0F 84 B9 02 00 00  je          00455633
+ 0005537A  0045537A: 39 5C 24 10        cmp         dword ptr [esp+10h],ebx
+ 0005537E  0045537E: 75 0E              jne         0045538E
+ 00055380  00455380: 83 FF 0F           cmp         edi,0Fh
+ 00055383  00455383: 75 09              jne         0045538E
+ 00055385  00455385: 83 F8 03           cmp         eax,3
+ 00055388  00455388: 0F 84 A5 02 00 00  je          00455633
+ 0005538E  0045538E: 83 FF 04           cmp         edi,4
+ 00055391  00455391: 75 0A              jne         0045539D
+ 00055393  00455393: 83 F8 0F           cmp         eax,0Fh
+ 00055396  00455396: 75 05              jne         0045539D
+ 00055398  00455398: 33 C9              xor         ecx,ecx
+ 0005539A  0045539A: 41                 inc         ecx
+ 0005539B  0045539B: EB 02              jmp         0045539F
+ 0005539D  0045539D: 33 C9              xor         ecx,ecx
+ 0005539F  0045539F: 66 39 9E 12 09 00  cmp         word ptr [esi+00000912h],bx
+                     00
+ 000553A6  004553A6: 89 8E 14 09 00 00  mov         dword ptr [esi+00000914h],ecx    UhOh = (charClass == LF822 && nextClass == DOT822);
+ 000553AC  004553AC: 74 14              je          004553C2
+ 000553AE  004553AE: 66 89 9E 10 09 00  mov         word ptr [esi+00000910h],bx    InStructure = 0;
+                     00
+ 000553B5  004553B5: 89 9E 04 01 00 00  mov         dword ptr [esi+00000104h],ebx   TokenSpot = 0;
+ 000553BB  004553BB: 66 89 9E 12 09 00  mov         word ptr [esi+00000912h],bx      ReinitToken = FALSE;
+                     00
+ 000553C2  004553C2: 8B 8E 04 01 00 00  mov         ecx,dword ptr [esi+00000104h]    if (TokenSpot > sizeof(Token)-3) (256-3 = 253 = FDh)
+ 000553C8  004553C8: 81 F9 FD 00 00 00  cmp         ecx,0FDh
+ 000553CE  004553CE: 0F 87 66 02 00 00  ja          0045563A
+ 000553D4  004553D4: 83 FF 04           cmp         edi,4       if (charClass == LF822
+ 000553D7  004553D7: 75 0D              jne         004553E6
+ 000553D9  004553D9: 83 F8 05           cmp         eax,5          && (nextClass == SPACE822 
+ 000553DC  004553DC: 74 05              je          004553E3
+ 000553DE  004553DE: 83 F8 06           cmp         eax,6            || nextClass == HTAB822)
+ 000553E1  004553E1: 75 03              jne         004553E6
+ 000553E3  004553E3: 6A 05              push        5             charClass = SPACE822; 
+ 000553E5  004553E5: 5F                 pop         edi
+ 000553E6  004553E6: 4A                 dec         edx          switch (State)   state-1: 0..7, from case labels 1..8
+ 000553E7  004553E7: 83 FA 07           cmp         edx,7  
+ 000553EA  004553EA: 0F 87 1F FF FF FF  ja          0045530F           next do loop  (outside of case label range 1..8)
+ 000553F0  004553F0: FF 24 95 54 56 45  jmp         dword ptr [edx*4+00455654h]   jump through switch table, 
+                     00                                                             with edx=state-1, edi=charClass, ecx=TokenSpot
+ 000553F7  004553F7: 3B FB              cmp         edi,ebx    jumptable[2]: case CollectAtom (3)
+ 000553F9  004553F9: 0F 8C 0B 02 00 00  jl          0045560A
+ 000553FF  004553FF: 83 FF 01           cmp         edi,1
+ 00055402  00455402: 7E 0E              jle         00455412
+ 00055404  00455404: 83 FF 0F           cmp         edi,0Fh
+ 00055407  00455407: 74 09              je          00455412
+ 00055409  00455409: 83 FF 12           cmp         edi,12h
+ 0005540C  0045540C: 0F 85 F8 01 00 00  jne         0045560A
+ 00055412  00455412: 8B 86 08 09 00 00  mov         eax,dword ptr [esi+00000908h]   ADD(*Spot++)
+ 00055418  00455418: 8A 10              mov         dl,byte ptr [eax]                    *Spot
+ 0005541A  0045541A: 40                 inc         eax                                   Spot++
+ 0005541B  0045541B: 89 86 08 09 00 00  mov         dword ptr [esi+00000908h],eax    
+ 00055421  00455421: 88 54 31 04        mov         byte ptr [ecx+esi+4],dl               Token[TokenSpot]=*Spot
+ 00055425  00455425: FF 86 04 01 00 00  inc         dword ptr [esi+00000104h]            TokenSpot++  <---- other code comes here
+ 0005542B  0045542B: 8B 86 04 01 00 00  mov         eax,dword ptr [esi+00000104h]
+ 00055431  00455431: 88 5C 30 04        mov         byte ptr [eax+esi+4],bl               Token[TokenSpot] = 0;
+ 00055435  00455435: E9 D5 FE FF FF     jmp         0045530F                next do loop
+ 0005543A  0045543A: 83 FF 05           cmp         edi,5
+ 0005543D  0045543D: 7C 05              jl          00455444
+ 0005543F  0045543F: 83 FF 06           cmp         edi,6
+ 00055442  00455442: 7E CE              jle         00455412
+ 00055444  00455444: 33 ED              xor         ebp,ebp
+ 00055446  00455446: E9 9A 01 00 00     jmp         004555E5
+ 
+ 0005544B  0045544B: 8D 44 31 04        lea         eax,[ecx+esi+4]      jumptable[3]: case CollectComment (4)
+ 0005544F  0045544F: 80 38 5C           cmp         byte ptr [eax],5Ch   if (Token[TokenSpot] == '\\')
+ 00055452  00455452: 0F 84 D0 00 00 00  je          00455528                    go to: ADD(*Spot++); break;
+ 00055458  00455458: 83 EF 03           sub         edi,3                switch(charClass): if CR822
+ 0005545B  0045545B: 0F 84 B0 01 00 00  je          00455611
+ 00055461  00455461: 83 EF 05           sub         edi,5                       if RPAR822
+ 00055464  00455464: 74 34              je          0045549A
+ 00055466  00455466: 4F                 dec         edi
+ 00055467  00455467: 0F 85 BB 00 00 00  jne         00455528                      default: go to: ADD(*Spot++); break;
+ 0005546D  0045546D: 8B 8E 08 09 00 00  mov         ecx,dword ptr [esi+00000908h]   if LPAR822
+ 00055473  00455473: 8A 11              mov         dl,byte ptr [ecx]
+ 00055475  00455475: 41                 inc         ecx
+ 00055476  00455476: 89 8E 08 09 00 00  mov         dword ptr [esi+00000908h],ecx
+ 0005547C  0045547C: 88 10              mov         byte ptr [eax],dl
+ 0005547E  0045547E: FF 86 04 01 00 00  inc         dword ptr [esi+00000104h]
+ 00055484  00455484: 8B 86 04 01 00 00  mov         eax,dword ptr [esi+00000104h]
+ 0005548A  0045548A: 88 5C 30 04        mov         byte ptr [eax+esi+4],bl
+ 0005548E  0045548E: 66 FF 86 10 09 00  inc         word ptr [esi+00000910h]
+                     00
+ 00055495  00455495: E9 75 FE FF FF     jmp         0045530F                           next do loop
+ 0005549A  0045549A: 8B 8E 08 09 00 00  mov         ecx,dword ptr [esi+00000908h]       ADD(*Spot++)
+ 000554A0  004554A0: 8A 11              mov         dl,byte ptr [ecx]
+ 000554A2  004554A2: 41                 inc         ecx
+ 000554A3  004554A3: 89 8E 08 09 00 00  mov         dword ptr [esi+00000908h],ecx
+ 000554A9  004554A9: 88 10              mov         byte ptr [eax],dl
+ 000554AB  004554AB: FF 86 04 01 00 00  inc         dword ptr [esi+00000104h]
+ 000554B1  004554B1: 8B 86 04 01 00 00  mov         eax,dword ptr [esi+00000104h]
+ 000554B7  004554B7: 88 5C 30 04        mov         byte ptr [eax+esi+4],bl
+ 000554BB  004554BB: 8D 86 10 09 00 00  lea         eax,[esi+00000910h]                  if(!--InStructure)
+ 000554C1  004554C1: 66 FF 08           dec         word ptr [eax]
+ 000554C4  004554C4: 66 39 18           cmp         word ptr [eax],bx
+ 000554C7  004554C7: 0F 85 42 FE FF FF  jne         0045530F                              next do loop
+ 000554CD  004554CD: 6A 05              push        5
+ 000554CF  004554CF: E9 10 01 00 00     jmp         004555E4
+ 
+   ---- finally, here comes the really interesting stuff: the case CollectQText block of the switch statement,
+   ---- which is where we put the jump to our patch
+   
+ 000554D4  004554D4: 8D 44 31 04        lea         eax,[ecx+esi+4]     jumptable[4]: Case CollectQText (5)
+ 000554D8  004554D8: 80 38 5C           cmp         byte ptr [eax],5Ch    if (Token[TokenSpot] == '\\')
+ 000554DB  004554DB: 74 4B              je          00455528                   go to: ADD(*Spot++); break;
+ 000554DD  004554DD: 83 FF 03           cmp         edi,3                 else switch (charClass); is it CR822? ***** ignore the result of this compare
+ 000554E0  004554E0: 0F 84 37 01 00 00  je          0045561D                   yes: return Qtext (2)            ***** change this to "nop; jmp PATCH"
+ 000554E6  004554E6:   
+ 
+*** THE PATCH
+
+   file      code
+ 000554E0  004554E0: 90                 nop
+ 000554E1  004554E1: E9 42 87 1B 00     jmp         0060DC28      jmp to PATCH
+ 000554E6  004554E6:
+ 
+    if (Instructure && (*spot == '\r' || *spot == '\n')) {Spot++; break;} // in a quoted string, skip CR or LF
+    
+    At this point,   eax = &Token[TokenSpot], the pointer to where we're accumulating the token
+                     ebx = 0
+                     ecx = TokenSpot (an integer index, not a pointer)
+                     edx = state-1
+                     edi = charClass, like CR822 or QUOTE822
+                     esi = stack frame pointer
+                     dword ptr [esi+00000908h] is Spot, where we're taking the string from
+   
+ After considerable angst fighting Visual Studio, I assembled the following code using MASM32
+ so that I wouldn't make any errors hand-assembling it:
+   
+ 0020DC28  0060DC28: 50                  push     eax                      ;save &Token[TokenSpot]
+ 0020DC29  0060DC29: 8D 86 10 09 00 00   lea      eax,[esi+910h]           ;&InStructure
+ 0020DC2F  0060DC2F: 66 39 18            cmp      word ptr [eax], bx       ;if (InStructure) // are we in a quoted string?
+ 0020DC32  0060DC32: 74 10               je       continue                 ;   not in quoted string, continue checking charClass
+ 0020DC34  0060DC34: 8B 86 08 09 00 00   mov      eax, dword ptr[esi+908h] ;Spot
+ 0020DC3A  0060DC3A: 80 38 0A            cmp      byte ptr[eax],0ah        ;if(*spot == '\n')
+ 0020DC3D  0060DC3D: 74 0B               je       doskip                   ;  goto Spot++; break; //skip LF
+ 0020DC3F  0060DC3F: 80 38 0D            cmp      byte ptr[eax],0dh        ;if(*spot == '\r')
+ 0020DC42  0060DC42: 74 06               je       doskip                   ;  goto Spot++; break; // skip CR
+                            continue: 
+ 0020DC44  0060DC44: 58                  pop      eax                      ;restore &Token[TokenSpot]
+ 0020DC45  0060DC45: E9 9C 78 E4 FF      jmp      004554E6                 ;go to continue checking charClass
+                            doskip:
+ 0020DC4A  0060DC4A: 58                  pop      eax                      ; restore &Token[TokenSpot]
+ 0020DC4B  0060DC4B: E9 EE 78 E4 FF      jmp      0045553E                 ;goto SSpot++ break;
+ 0020DC50  0060DC50: (40 bytes patched)
+ 
+*** END OF PATCH
+              
+ 000554E6  004554E6: 83 FF 07           cmp         edi,7                           is it QUOTE822?
+ 000554E9  004554E9: 75 3D              jne         00455528                            no, go to: ADD(*Spot++); break;
+ 000554EB  004554EB: FF 86 08 09 00 00  inc         dword ptr [esi+00000908h]           yes (case QUOTE822) Spot++ //skip the quote
+ 000554F1  004554F1: 8D 86 10 09 00 00  lea         eax,[esi+00000910h]
+ 000554F7  004554F7: 66 39 18           cmp         word ptr [eax],bx                   if (InStructure)
+ 000554FA  004554FA: 0F 85 1D 01 00 00  jne         0045561D                                return Qtext (2)
+ 00055500  00455500: 66 C7 00 01 00     mov         word ptr [eax],1                     InStructure++; // we weren't in a quote, but we are now 
+ 00055505  00455505: E9 05 FE FF FF     jmp         0045530F                              next do loop   
+ 
+ 0005550A  0045550A: 8D 44 31 04        lea         eax,[ecx+esi+4]        jumptable[5]: case CollectDL: (6)
+ 0005550E  0045550E: 80 38 5C           cmp         byte ptr [eax],5Ch        if (Token[TokenSpot] == '\\')
+ 00055511  00455511: 74 15              je          00455528                      goto ADD(*Spot++); break;
+ 00055513  00455513: 83 EF 03           sub         edi,3                     else switch(charClass) case CR822 (3) ?
+ 00055516  00455516: 0F 84 0B 01 00 00  je          00455627
+ 0005551C  0045551C: 83 EF 0D           sub         edi,0Dh                                case LSQU822 (10h) ?
+ 0005551F  0045551F: 74 1D              je          0045553E
+ 00055521  00455521: 4F                 dec         edi                                    case RSQU822 (11h) ?
+ 00055522  00455522: 0F 84 F9 00 00 00  je          00455621 
+ 00055528  00455528: 8B 8E 08 09 00 00  mov         ecx,dword ptr [esi+00000908h]           default: ADD(*Spot++); **** WARNING: expect eax = &Token[TokenSpot]
+ 0005552E  0045552E: 8A 11              mov         dl,byte ptr [ecx]                            *Spot
+ 00055530  00455530: 41                 inc         ecx                                            Spot++
+ 00055531  00455531: 89 8E 08 09 00 00  mov         dword ptr [esi+00000908h],ecx                  store it
+ 00055537  00455537: 88 10              mov         byte ptr [eax],dl                        Token[TokenSpot] = c (from macro; actually *Spot) 
+ 00055539  00455539: E9 E7 FE FF FF     jmp         00455425                                    ;continue doing ADD(*Spot++)
+ 0005553E  0045553E: FF 86 08 09 00 00  inc         dword ptr [esi+00000908h]    Spot++;
+ 00055544  00455544: E9 C6 FD FF FF     jmp         0045530F               next do loop
+ 00055549  00455549: 6A 04              push        4                     jumptable[6]: case CollectSpecial (7)
+ 0005554B  0045554B: 5A                 pop         edx
+ 0005554C  0045554C: 3B FA              cmp         edi,edx
+ 0005554E  0045554E: 75 3F              jne         0045558F
+ 00055550  00455550: 83 F8 03           cmp         eax,3
+ 00055553  00455553: 75 56              jne         004555AB
+ 00055555  00455555: 8B 86 08 09 00 00  mov         eax,dword ptr [esi+00000908h]
+ 0005555B  0045555B: 8A 10              mov         dl,byte ptr [eax]
+ 0005555D  0045555D: 40                 inc         eax
+ 0005555E  0045555E: 89 86 08 09 00 00  mov         dword ptr [esi+00000908h],eax
+ 00055564  00455564: 88 54 31 04        mov         byte ptr [ecx+esi+4],dl
+ 00055568  00455568: FF 86 04 01 00 00  inc         dword ptr [esi+00000104h]
+ 0005556E  0045556E: 8B 86 04 01 00 00  mov         eax,dword ptr [esi+00000104h]
+ 00055574  00455574: 88 5C 30 04        mov         byte ptr [eax+esi+4],bl
+ 00055578  00455578: 6A 06              push        6
+ 0005557A  0045557A: 8B C6              mov         eax,esi
+ 0005557C  0045557C: E8 F3 00 00 00     call        00455674
+ 00055581  00455581: 8B E8              mov         ebp,eax
+ 00055583  00455583: 83 FD 09           cmp         ebp,9
+ 00055586  00455586: 74 03              je          0045558B
+ 00055588  00455588: 6A 07              push        7
+ 0005558A  0045558A: 5D                 pop         ebp
+ 0005558B  0045558B: 89 1E              mov         dword ptr [esi],ebx
+ 0005558D  0045558D: EB 70              jmp         004555FF
+ 0005558F  0045558F: 83 FF 07           cmp         edi,7
+ 00055592  00455592: 75 0B              jne         0045559F
+ 00055594  00455594: C7 06 05 00 00 00  mov         dword ptr [esi],5
+ 0005559A  0045559A: E9 70 FD FF FF     jmp         0045530F               next do loop
+ 0005559F  0045559F: 83 FF 09           cmp         edi,9
+ 000555A2  004555A2: 75 07              jne         004555AB
+ 000555A4  004555A4: 89 16              mov         dword ptr [esi],edx
+ 000555A6  004555A6: E9 64 FD FF FF     jmp         0045530F               next do loop
+ 000555AB  004555AB: 8B 86 08 09 00 00  mov         eax,dword ptr [esi+00000908h]
+ 000555B1  004555B1: 8A 10              mov         dl,byte ptr [eax]
+ 000555B3  004555B3: 40                 inc         eax
+ 000555B4  004555B4: 89 86 08 09 00 00  mov         dword ptr [esi+00000908h],eax
+ 000555BA  004555BA: 88 54 31 04        mov         byte ptr [ecx+esi+4],dl
+ 000555BE  004555BE: FF 86 04 01 00 00  inc         dword ptr [esi+00000104h]
+ 000555C4  004555C4: 8B 86 04 01 00 00  mov         eax,dword ptr [esi+00000104h]
+ 000555CA  004555CA: 6A 06              push        6
+ 000555CC  004555CC: 88 5C 30 04        mov         byte ptr [eax+esi+4],bl
+ 000555D0  004555D0: 5D                 pop         ebp
+ 000555D1  004555D1: C7 06 01 00 00 00  mov         dword ptr [esi],1
+ 000555D7  004555D7: EB 26              jmp         004555FF
+ 000555D9  004555D9: 83 FF 04           cmp         edi,4                jumptable[7] case CollectText (8) 
+ 000555DC  004555DC: 0F 85 30 FE FF FF  jne         00455412
+ 000555E2  004555E2: 6A 03              push        3
+ 000555E4  004555E4: 5D                 pop         ebp
+ 000555E5  004555E5: C7 06 01 00 00 00  mov         dword ptr [esi],1
+ 000555EB  004555EB: EB 5F              jmp         0045564C
+ 000555ED  004555ED: 0F BE 87 40 DB 5F  movsx       eax,byte ptr [edi+005FDB40h]
+                     00
+ 000555F4  004555F4: 89 06              mov         dword ptr [esi],eax
+ 000555F6  004555F6: 66 C7 86 12 09 00  mov         word ptr [esi+00000912h],1
+                     00 01 00
+ 000555FF  004555FF: 83 FD 0A           cmp         ebp,0Ah
+ 00055602  00455602: 0F 84 07 FD FF FF  je          0045530F                   next do loop
+ 00055608  00455608: EB 42              jmp         0045564C
+ 0005560A  0045560A: 33 ED              xor         ebp,ebp
+ 0005560C  0045560C: 45                 inc         ebp
+ 0005560D  0045560D: 89 2E              mov         dword ptr [esi],ebp
+ 0005560F  0045560F: EB 3B              jmp         0045564C
+ 00055611  00455611: 66 89 9E 10 09 00  mov         word ptr [esi+00000910h],bx
+                     00
+ 00055618  00455618: E9 B0 FE FF FF     jmp         004554CD
+ 0005561D  0045561D: 6A 02              push        2
+ 0005561F  0045561F: EB C3              jmp         004555E4
+ 00055621  00455621: FF 86 08 09 00 00  inc         dword ptr [esi+00000908h]
+ 00055627  00455627: 6A 04              push        4
+ 00055629  00455629: EB B9              jmp         004555E4
+ 0005562B  0045562B: 6A 07              push        7
+ 0005562D  0045562D: EB 08              jmp         00455637
+ 0005562F  0045562F: 6A 09              push        9
+ 00055631  00455631: EB 04              jmp         00455637
+ 00055633  00455633: 89 1E              mov         dword ptr [esi],ebx
+ 00055635  00455635: 6A 08              push        8
+ 00055637  00455637: 58                 pop         eax
+ 00055638  00455638: EB 14              jmp         0045564E
+ 0005563A  0045563A: 8B 06              mov         eax,dword ptr [esi]
+ 0005563C  0045563C: 66 C7 86 12 09 00  mov         word ptr [esi+00000912h],1
+                     00 01 00
+ 00055645  00455645: 0F B6 A8 58 DC 5F  movzx       ebp,byte ptr [eax+005FDC58h]
+                     00
+ 0005564C  0045564C: 8B C5              mov         eax,ebp
+ 0005564E  0045564E: 5F                 pop         edi
+ 0005564F  0045564F: 5E                 pop         esi
+ 00055650  00455650: 5D                 pop         ebp
+ 00055651  00455651: 5B                 pop         ebx
+ 00055652  00455652: 59                 pop         ecx
+ 00055653  00455653: C3                 ret
+                ... What starts here actually isn't this code that the disassembler shows,
+                ... it's an 8-entry jump table for the switch(State){} statement: 
+ 00055654  00455654: ED                 in          eax,dx                     004555ED  0
+ 00055655  00455655: 55                 push        ebp                       
+ 00055656  00455656: 45                 inc         ebp
+ 00055657  00455657: 00 3A              add         byte ptr [edx],bh          0045543A  1
+ 00055659  00455659: 54                 push        esp
+ 0005565A  0045565A: 45                 inc         ebp
+ 0005565B  0045565B: 00 F7              add         bh,dh                      004553F7  2
+ 0005565D  0045565D: 53                 push        ebx
+ 0005565E  0045565E: 45                 inc         ebp
+ 0005565F  0045565F: 00 4B 54           add         byte ptr [ebx+54h],cl      0045544B  3
+ 00055662  00455662: 45                 inc         ebp
+ 00055663  00455663: 00 D4              add         ah,dl                      004554D4  4
+ 00055665  00455665: 54                 push        esp
+ 00055666  00455666: 45                 inc         ebp
+ 00055667  00455667: 00 0A              add         byte ptr [edx],cl          0045550A  5
+ 00055669  00455669: 55                 push        ebp
+ 0005566A  0045566A: 45                 inc         ebp
+ 0005566B  0045566B: 00 49 55           add         byte ptr [ecx+55h],cl      00455549  6
+ 0005566E  0045566E: 45                 inc         ebp
+ 0005566F  0045566F: 00 D9              add         cl,bl                      004555D9  7
+ 00055671  00455671: 55                 push        ebp
+ 00055672  00455672: 45                 inc         ebp
+ 00055673  00455673: 00 
+ 
+ 
+APPENDIX: Experiments to find a good location for the patch code
+ 
+We need to find a good location in the code segment to place our patch code that we make 
+Eudora jump to. At file 288672, code location 688672, I found this bizarrely long 2-byte 
+character string that seemed like a good candidate:
+
+ (IDS_NEED_VERSION4)  
+  D3 00  "Sorry, this version of Eudora cannot run on this version of Windows.  Eudora requires Windows 95 
+  (or later) or Windows NT 4.0 (or later).  Please upgrade to a compatible version of Windows before running Eudora."
+ 
+where each character is stored as two bytes, xx 00. The D3 00 is 211 decimal, which is the 
+number of 2-byte characters that follow. That seemed like a wonderful playground for patches.
+
+In the source code that string is defined as "STRINGTABLE DISCARDABLE". But 
+https://devblogs.microsoft.com/oldnewthing/20120712-00/?p=7143 says that "The discardable 
+flag on resources also has no effect. The discardable attribute for user-mode code is a 
+left-over from 16-bit Windows...". So we were hopeful that if we put our patch code there, 
+it will stay around forever. 
+   
+As a trial, to see if patching the DISCARDABLE area would work at all, I took over and 
+patched the space starting at " Eudora requires...", and shortened the part before it.
+The patch just duplicate Eudora's existing code and then jumps back. 
+
+   file       code
+ 000554E0  004554E0: 90                 nop
+ 000554E1  004554E1: E9 16 32 23 00     jmp          006886FC      jmp to PATCH
+ 000554E6  004554E6:
+ 00288672  00688672: 44   shorten the "Sorry, this version Eudora cannot run..." string
+ starting at "  Eudora requires Windows 95..." we overlay this:
+ 002886FC  006886FC: 0F 84 1B CF DC FF  je          0045561D 
+ 00288702  00688702: E9 DF CD DC FF     jmp         004554E6
+ 00288707  00688707: 
+ 
+That fails catastrophically, by causing an illegal exception trap at location 689DCC. It 
+must be that after initialization, Eudora is actually taking over the DISCARDABLE space 
+for something else. To make sure the test wasn't a false negative, I tried the same patch 
+in a non-DISCARDABLE area of memory that will be described in a minute. 
+ 
+ 000554E0  004554E0: 90                 nop
+ 000554E1  004554E1 : E9 4A 87 1B 00    jmp          0060DC30       jmp to PATCH
+ 000554E6  004554E6:
+ starting at the 9th byte of "<! -- STOP REMOVE FOR PROAD -->"
+ 0020DC2F  0060DC2F: 00   abort the string after "ST"
+ 0020DC30  0060DC30: 0F 84 E7 79 E4 FF  je          0045561D 
+ 0020DC36  0060DC36: E9 AB 78 E4 FF     jmp         004554E6
+ 0020DC3B  0060DC3B: 
+
+That worked. So we have verified a safe place to put our patches, even though it isn't
+as big as that tantalizing discardable string.
+
+The useable patch space overlays the following static strings starting at 0020DC28. These 
+strings were used by Eudora to filter the "more help" HTML file depending on whether it is 
+in light or pro/adware mode. Since the help stuff doesn't work anymore anyway, we feel 
+justified in trashing them. In the worst case, even if help worked, the result would be 
+that some help text would be shown that isn't appropriate for the particular mode. No biggie. 
+
+ 0020DC28  0060DC28: "<!-- STOP REMOVE FOR PROAD -->" 00 00
+ 0020DC48  0060DC48: "<!-- START REMOVE FOR PROAD -->" 00
+ 0020DC68  0060DC68: "<!-- STOP REMOVE FOR LIGHT -->" 00 00
+ 0020DC88  0060DC88: "<!-- START REMOVE FOR LIGHT -->" 00  
+ 
+Each of those strings is 32 bytes, for a total of 128 bytes of patch area. The 
+last 17 bytes were already used for the doubleletter patch back in March 2022, 
+so there are 111 bytes left to play with. 
