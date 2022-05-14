@@ -1,3 +1,27 @@
+Eudora_fix_mbx release notes
+----------------------------
+
+*** Version 1.4, 13 May 2022
+
+Changes to the program
+ - Add * as a search character prefix to mean "zero or more occurrences" of the next character.
+ - Allow \r \n \t and \\ escape sequences as search or replacement items, or inside the strings.
+ - Add <nochange> as a replacement option; useful for setting match flags without making a change.
+ - Show <b> instead of <blank> in the report, to save on screen space.
+ - Add <fixattachment> as a replacement option to attempt to repair attachment filenames that 
+   Eudora has truncated. We try to restore the original name that was split by Outlook onto 
+   multiple lines, and rename the file in the attachment directory. But this may already be 
+   obsolete because there is now a patched version of Eudora.exe that fixes it; see the
+   patches\3_POP_filename_patch subdirectory of the repository.
+   
+Changes to the suggested translations.txt file:
+ - Add a rule that left-justifies images sent by USPS Informed Delivery.
+ - Add a rule that invokes <fixattachment> for filenames that may have been broken. 
+   but leave it commented out by default.
+ - Add a translation from a UTF-8 Greek lowercase Mu (micro) to ANSI.
+ - Add a translation that deletes ALL the pesky remaining circumflex-A characters, 
+   but leave it commented out by default.
+ 
 *** Version 1.3, 19 March 2022
 
 Changes to the program:

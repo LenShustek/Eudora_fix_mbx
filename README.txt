@@ -1,3 +1,4 @@
+
 Eudora_fix_mbx: Repair UTF-8 character codes and problematic HTML in Eudora mailboxes
 
 This is a command-line (non-GUI) Windows program that modifies the data of Eudora
@@ -9,6 +10,8 @@ in ways like this:
   - change linefeed characters not adjacent to carriage returns into carriage returns
     so Eudora will move to a new line and not squash everything together
   - change Outlook-generated non-standard HTML into something Eudora deals correctly with
+  - left-justify inline images so they aren't way off the screen
+  - fix attachment filenames sent by Outlook that Eudora mistakenly truncated
 
 This operates on the messages in the mailboxes you run it on. It doesn't install anything
 inside Eudora that runs automatically when new messages are received. You have to run
@@ -21,7 +24,7 @@ automated ways to do that, using a combination of Eudora filters and additional 
 
 *** This is freeware that lives at https://github.com/LenShustek/Eudora_fix_mbx ****
 
-There is a lot of detailed information below, but you don't really have to understand it all 
+There is a lot of detailed information below, but you don't really have to understand it all
 to use the program. If you are ok with the defaults, see the instructions.txt file for a
 cookbook way to install and run the program. In particular, it recommends using the fix_mbx
 batch file to maintain a series of backups of the mailbox files you are fixing.
@@ -57,10 +60,11 @@ the overall operation of the program:
    checksync             Check that TOC entries point to valid message starts in MBX
 
    eudoraokforsystemmailboxes  A hard-to-type option that lets Eudora run even when
-                                 processing system mailboxes, if you like taking risks.
+                               processing system mailboxes, if you like taking risks.
 
-Other lines of the file specify replacements to make, in this form:
-   searchstring = replacementstring  ;comment
+The remaining lines of the file specify the substitutions to made, like this:
+
+     searchstring = replacementstring  ;comment
 
 The searchstring can optionally start with clauses that restrict the search:
    <headers>             only match in the headers of messages
@@ -69,29 +73,39 @@ The searchstring can optionally start with clauses that restrict the search:
    <ifmatch n>           only match if "match flag n" is set; see <setmatch n>
    <ignorecase>          treat upper and lower case alphabetics as equivalent
 
-Following that is an arbitrary sequence of:
+Following that is an arbitrary sequence of these:
    "quotedstring"        any printable characters except "
    'quotedstring'        any printable characters except '
-    hexadecimal string   hexadecimal character codes, like C2A0
+    hexadecimal string   hexadecimal character codes, like C2A0 or E282AC
+    \r \n \t  \\         escape sequence for return (0D), newline (0A), tab (09), or backslash (5C)
 
-Any single-character item can optionally be preceded by ! to mean "not this character".
+Any single-character item in the searchstring can optionally be preceded by
+     ! to mean "not this character", ie "any character but this one"
+     * to mean "zero or more occurrences of this character"
 
-The replacementstring can be an arbitrary sequence of:
+The replacementstring can be an arbitrary sequence of these:
    "quotedstring"        any printable characters except "
    'quotedstring'        any printable characters except '
-    hexadecimal string   hexadecimal character codes, like 433A
+    hexadecimal string   hexadecimal character codes, like 20 or 433A
+    \r \n \t  \\         escape sequence for return (0D), newline (0A), tab (09), or backslash (5C)
     *                    a request to insert the one character that
                             matched a !xx or !'c' in the searchstring
     <setmatch n>         set "match flag n"
     <clearmatch n>       clear "match flag n"
 
-or the replacementstring can be one of these:
+or the replacementstring can instead be one of these:
     <blanks>             replace the searchstring with all blanks
     <nothing>            replace the searchstring with all zeroes (same as "" or '')
+    <nochange>           make no change to the searched string (useful if you are only setting match flags)
+    <fixattachment>      a special request to fix and rename attachments whose file names were truncated;
+                           for details, see the file truncated_filename_fixes.txt, or the comments before
+                           fix_attachment_filename() in the source code. This is probably obsolete given
+                           the patched version of eudora.exe at patches\3_POP_filename_patch.
 
-The rules are:
+The substitution rules are:
   - The searchstring may be from 1 to 100 bytes long
   - The replacementstring may not be longer than the string being searched for.
+  - Quoted strings may contain \r \n \t \\ escape sequences for those special characters.
   - If the replacement is shorter than the search string, then
     - In a mailbox, the remainder bytes of the search string are changed to zero,
       which are ignored when Eudora renders the text.
@@ -123,6 +137,7 @@ Here are some example translations.txt lines:
 
 See the accompanying "translations.txt" file for suggested translations that use the
 Windows-1252 extended ASCII (ANSI) character set, which Eudora displays correctly.
+
 If you want to only use standard ASCII characters instead, use the
 "translations_ASCII.txt" file either by renaming it to translations.txt, or by
 giving (see below) the  -t=translations_ASCII.txt  command line option.
@@ -139,17 +154,17 @@ If the mailbox name ends with ".mbx", it is removed. That allows the program to 
 by dragging and dropping the mailbox file onto the program's icon. The downside of
 doing that is that an error reported at the end will disappear before you can read it.
 The "fix_mbx" batch file recommended in instructions.txt helps with that, and it
-maintains backup files, so try drag-and-dropping onto the batch file's icon instead.
+maintains backup files, so try drag-and-dropping onto that batch file's icon instead.
 
 The translations.txt file is normally expected to be in the current directory. If you wish
 to use a different name and/or location for the translations file, specify it as follows:
   Eudora_fix_mbx     -t=filename.txt     mailboxname
-  Eudora_fix_mbx  -t=path/filename.txt   mailboxname
+  Eudora_fix_mbx  -t=path\filename.txt   mailboxname
 
 A status report about what changes were made (or what errors were found) is normally appended
 to the file Eudora_fix_mbx.log, unless you have specified "options nologging". If you wish
 to use a different name and/or location for the log file, specify it using the
-  -l=filename.txt or -l=path/filename.txt command line option.
+  -l=filename.txt  or  -l=path\filename.txt  command line option.
 
 The program returns the following values, which can be tested as %ERRORLEVEL% in a batch file:
    0 no errors, and changes were made to the mailbox and/or the table-of-contents file
@@ -161,4 +176,4 @@ I don't guarantee this will work well for you, so be sure to keep backups of the
 MBX and TOC files in case you don't like what it did! I have compiled it so that
 it should run on any any version of Windows starting with XP from 2001.
 
-Len Shustek, September/October 2021, March 2022
+Len Shustek, September/October 2021, March 2022, May 2022

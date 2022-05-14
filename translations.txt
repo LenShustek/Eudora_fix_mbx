@@ -1,5 +1,5 @@
-;translations.txt, version of 1/25/2022 at 9:15am
-;A file for the Eudora_fix_mbx program (version 1.2 or higher) that describes replacements
+;translations.txt, version of 5/5/2022 at 4:48pm
+;A file for the Eudora_fix_mbx program (version 1.4 or higher) that describes replacements
 ;for common Unicode (UTF-8) codes and other sequences that Eudora doesn't display correctly.
 
 ;This version translates to the Windows-1252 "extended ASCII" (ANSI) character set.
@@ -162,6 +162,7 @@ C3BC = FC   ;LATIN SMALL LETTER U WITH DIAERESIS
 C3BD = FD   ;LATIN SMALL LETTER Y WITH ACUTE
 C3BE = FE   ;LATIN SMALL LETTER THORN
 C3BF = FF   ;LATIN SMALL LETTER Y WITH DIAERESIS
+CEBC = B5   ;Greek lowercase Mu (micro)
  
 ;Replace a selection of other common 3-byte UTF-8 hex codes.
 E28080 = " "        ;En quad
@@ -183,6 +184,7 @@ EFBFBD = "?"        ;replacement character (subsituted for a bad code)
 C2 ' '       = ' '       ;remove extraneous circumflex-A
 C2 0D        = 00 0D     ;remove extraneous circumflex-A (00 first in case 0A follows)
 C2 "&nbsp;"  = "&nbsp;"  ;remove extraneous circumflex-A
+;C2 = <nothing>           ;maybe remove ALL remaining pesky circumflex-A characters?
 
 ;Prevent text blocks from being squashed by Eudora because they contain only naked linefeeds.
 !0d 0a !0d = * 0d *    ; change isolated linefeeds to carriage return
@@ -195,6 +197,16 @@ C2 "&nbsp;"  = "&nbsp;"  ;remove extraneous circumflex-A
 <body> <ignorecase> "<p class=MsoPlainText>" = "" <setmatch 2>     ;remove Outlook 0-margin paragraphs
 <body> <ignorecase> '<p class="MsoPlainText">' = "" <setmatch 2>   ;remove Outlook 0-margin paragraphs
 <body> <ignorecase> <ifmatch 2> "</p>" = "<br>" <clearmatch 2>  ;and replace with linebreak
+
+;Make scanned mail images from USPS "Informed Delivery" be left-justified,
+;by changing padding-left=x% to padding-left=0% in table cell data
+<headers> "From: USPS Informed Delivery" = <nochange> <setmatch 3> ;detected a USPS Informed Delivery message
+<body> <ifmatch 3> <html td> "padding-left: " !'0' "%" = "padding-left: 0%" ;left-justified a USPS Informed Delivery image
+
+;Fix attachment names that have been truncated because they were split by Outlook into multiple lines
+;This is commented out by default, in case you are using the patched executable instead.
+;<body> '\r\nContent-Disposition: attachment;' *' ' '\r\n\tfilename="' = <fixattachment> ;fix truncated attachment name
+
 
 ;Appendix: Here are some ideas for dealing with Emojis and other Unicode graphics.
 ; You can "uncomment" and activate the replacement rules by removing the initial semicolon.
