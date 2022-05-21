@@ -1,5 +1,5 @@
-;translations.txt, version of 5/5/2022 at 4:48pm
-;A file for the Eudora_fix_mbx program (version 1.4 or higher) that describes replacements
+;translations.txt, version of 5/17/2022 at 10:33am
+;A file for the Eudora_fix_mbx program (version 1.5 or higher) that describes replacements
 ;for common Unicode (UTF-8) codes and other sequences that Eudora doesn't display correctly.
 
 ;This version translates to the Windows-1252 "extended ASCII" (ANSI) character set.
@@ -17,12 +17,17 @@
 ;near the end, you can restrict replacements and speed things up by uncommenting this line:
 ;options onlydo 10 MB  ;only scan the last chunk of very large mailboxes
 
+;By default we process all messages in the mailbox, included any leftover deleted messages
+;that are still there because the mailbox hasn't been compacted. The following option asks
+;that we process only non-deleted messages. You can comment it out to process all messages.
+options skipdeleted  ;pre-read the table-of-contents to skip deleted messages
+
 ;By default we do replacements in the address and the subject fields of the
 ;table-of-contents file. You can choose not do that that by uncommenting this line:
 ;options skiptoc  ;don't make changes in the table-of-contents file
 
 ;If we're reading the table-of-contents file, the following option asks to verify that all
-;entries point to valid message headers in the mailbox file. To not do that, comment it.
+;entries point to valid message headers in the mailbox file. To not do that, comment it out.
 options checksync  ;check that TOC and MBX are in sync
 
 ;***** section 2: translation specifications
@@ -203,9 +208,9 @@ C2 "&nbsp;"  = "&nbsp;"  ;remove extraneous circumflex-A
 <headers> "From: USPS Informed Delivery" = <nochange> <setmatch 3> ;detected a USPS Informed Delivery message
 <body> <ifmatch 3> <html td> "padding-left: " !'0' "%" = "padding-left: 0%" ;left-justified a USPS Informed Delivery image
 
-;Fix attachment names that have been truncated because they were split by Outlook into multiple lines
-;This is commented out by default, in case you are using the patched executable instead.
-;<body> '\r\nContent-Disposition: attachment;' *' ' '\r\n\tfilename="' = <fixattachment> ;fix truncated attachment name
+;Fix attachment names that have been truncated by Eudora because they were split by Outlook into multiple lines.
+;***This is commented out because it renames attachment files, and you should have to explicitly opt-in to do that.
+;<body> '\r\nContent-Disposition: attachment;' <whitespace> 'filename' = <fixattachment> ;fix truncated attachment name
 
 
 ;Appendix: Here are some ideas for dealing with Emojis and other Unicode graphics.
