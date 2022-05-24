@@ -79,8 +79,8 @@ The searchstring can optionally start with clauses that restrict the search:
 Following that is an arbitrary sequence of these:
    "quotedstring"        any printable characters except "
    'quotedstring'        any printable characters except '
-    hexadecimal string   hexadecimal character codes, like C2A0 or E282AC
-    \r \n \t  \\         escape sequence for return (0D), newline (0A), tab (09), or backslash (5C)
+    hexadecimal string   hexadecimal character codes, like 20, C2A0, or E282AC
+    \r \n \t             escape sequence for return (0D), newline (0A), or tab (09)
     <whitespace>         matches zero or more blank, tab, return, or newline characters
 
 Any single-character item in the searchstring can optionally be preceded by
@@ -91,15 +91,17 @@ The replacementstring can be an arbitrary sequence of these:
    "quotedstring"        any printable characters except "
    'quotedstring'        any printable characters except '
     hexadecimal string   hexadecimal character codes, like 20 or 433A
-    \r \n \t  \\         escape sequence for return (0D), newline (0A), tab (09), or backslash (5C)
+    \r \n \t             escape sequence for return (0D), newline (0A), or tab (09)
     *                    a request to insert the one character that
                             matched a !xx or !'c' in the searchstring
+    <blankpad>           insert zero or more blanks at the current point to make the replacement
+                            take the full size of the matched string. This can appear only once.
     <setmatch n>         set "match flag n"
     <clearmatch n>       clear "match flag n"
 
 or the replacementstring can instead be one of these:
     <blanks>             replace the searchstring with all blanks
-    <nothing>            replace the searchstring with all zeroes (same as "" or '')
+    <zeros>              replace the searchstring with all zeroes (same as "" or '')
     <nochange>           make no change to the searched string (useful if you are only setting match flags)
     <fixattachment>      a special request to fix and rename attachments whose file names were truncated;
                            for details, see the file fixattachment_explanation.txt, or the comments before
@@ -108,7 +110,6 @@ or the replacementstring can instead be one of these:
 The substitution rules are:
   - The searchstring may be from 1 to 100 bytes long
   - The replacementstring may not be longer than the string being searched for.
-  - Quoted strings may contain \r \n \t \\ escape sequences for those special characters.
   - If the replacement is shorter than the search string, then
     - In a mailbox, the remainder bytes of the search string are changed to zero,
       which are ignored when Eudora renders the text.
@@ -180,3 +181,4 @@ MBX and TOC files in case you don't like what it did! I have compiled it so that
 it should run on any any version of Windows starting with XP from 2001.
 
 Len Shustek, September/October 2021, March 2022, May 2022
+

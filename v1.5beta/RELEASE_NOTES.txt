@@ -1,21 +1,32 @@
 Eudora_fix_mbx release notes
 ----------------------------
 
-*** Version 1.5, 19 May 2022
+*** Version 1.5, 23 May 2022
 
 Changes to the program
- - Make <fixattachment> handle the filename*n="xxx" continuation style from RFC 2184
-     when fixing attachment filenames. That's too hard for a patch to Eudora.exe to do.
- - Don't have <fixattachment> rename files whose suggested name was on one line, since
-     Eudora handles that case. That avoids renaming files that Eudora added digits to.
+ - Enhancements to <fixattachment> 
+     -- Handle the filename*n="xxx" continuation style from RFC 2184 when fixing
+        attachment filenames. That's too hard for a patch to Eudora.exe to do.
+     -- Don't rename files whose suggested name was on one line, since Eudora
+        handles that case. That avoids renaming files that Eudora added digits to.
+     -- Allow arbitrary spaces between Attachment Converted: and the string. 
+     -- Add 40 blanks between Attachment Converted: and our new filename string, so
+        that a subsequent rule that changes the attachment directory can make it up
+        to 40 characters longer.
  - Add a "skipdeleted" option that pre-reads the table of contents file and uses that to
-     skip fixing deleted message that are still in the mailbox because it hasn't been compacted.
- - Add <whitespace> as a search term to mean one or more blank or tab characters.
+   skip fixing deleted message that are still in the mailbox because it hasn't been compacted.
+ - Add <whitespace> as a search term to mean zero or more blank, tab, return, or linefeed characters.
+ - Add <blankpad> as a replacement term to insert zero or more blanks at the current point
+   to make the replacement take the full size of the matched string.
+ - Don't allow escape sequences like \r in strings. (Makes it too hard to specify pathnames.)
  - Display I/O errors with a text description instead of a numeric code.
+ - Check for "replacement larger than search" only when matches are made, because <whitespace>
+   and *' ' can both allow the search part to be larger than what's in the translation rule.
  
 Changes to the suggested translations.txt file:
  - Use <whitespace> in the <fixattachment> rule so that it matches more cases we've seen.
    (That rule is still a comment by default; you should explicitly opt-in for something that renames files.)
+ - Show an example rule that changes the directory for attachments.
  - Add "option skipdeleted" as the default to avoid processing deleted messages.
  
 *** Version 1.4, 13 May 2022
