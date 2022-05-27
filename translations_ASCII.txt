@@ -22,6 +22,10 @@
 ;The following option asks that only the non-deleted messages be processed.
 options skipdeleted ;pre-read the table-of-contents so we can skip deleted messages
 
+;The following option asks to not make substitutions in the MIME headers of the body that
+;contain filenames, because Eudora may have already created files using them unmodified.
+options skipfilenames
+
 ;By default we do replacements in the address and the subject fields of the
 ;table-of-contents file. You can choose not do that that by uncommenting this line:
 ;options skiptoc  ;don't make changes in the table-of-contents file
