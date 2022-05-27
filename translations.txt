@@ -1,5 +1,5 @@
-;translations.txt, version of 5/5/2022 at 4:48pm
-;A file for the Eudora_fix_mbx program (version 1.4 or higher) that describes replacements
+;translations.txt, version of 5/23/2022 at 8:01am
+;A file for the Eudora_fix_mbx program (version 1.5 or higher) that describes replacements
 ;for common Unicode (UTF-8) codes and other sequences that Eudora doesn't display correctly.
 
 ;This version translates to the Windows-1252 "extended ASCII" (ANSI) character set.
@@ -8,21 +8,25 @@
 
 ;****** section 1: program options
 
-;By default we allow Eudora to be running when fixing non-system mailboxes -- which should
-;be closed -- but not when fixing In, Out, Trash, or Junk. If you don't want Eudora running
-;ever when fixing mailboxes, uncomment the following line by removing the first semicolon:
+;By default we allow Eudora to be running when fixing non-system mailboxes (which should
+;be closed!) but not when fixing In, Out, Trash, or Junk. If you don't want Eudora running
+;at all when we're running, uncomment the following line by removing the first semicolon:
 ;options noeudora   ;never fix any mailboxes if Eudora is running
 
 ;If you are running this on a very large mailbox and know that changes only need to be made
 ;near the end, you can restrict replacements and speed things up by uncommenting this line:
 ;options onlydo 10 MB  ;only scan the last chunk of very large mailboxes
 
+;By default we process all messages in the mailbox, included any uncompacted deleted messages.
+;The following option asks that only the non-deleted messages be processed.
+options skipdeleted ;pre-read the table-of-contents so we can skip deleted messages
+
 ;By default we do replacements in the address and the subject fields of the
 ;table-of-contents file. You can choose not do that that by uncommenting this line:
 ;options skiptoc  ;don't make changes in the table-of-contents file
 
 ;If we're reading the table-of-contents file, the following option asks to verify that all
-;entries point to valid message headers in the mailbox file. To not do that, comment it.
+;entries point to valid message headers in the mailbox file. To not do that, comment it out.
 options checksync  ;check that TOC and MBX are in sync
 
 ;***** section 2: translation specifications
@@ -190,22 +194,27 @@ C2 "&nbsp;"  = "&nbsp;"  ;remove extraneous circumflex-A
 !0d 0a !0d = * 0d *    ; change isolated linefeeds to carriage return
 
 ;Fix Outlook-generated messages so Eudora doesn't insert extra blank lines when replying.
-<body> <ignorecase> "<p class=MsoNormal>" = "" <setmatch 1>     ;remove Outlook 0-margin paragraphs
-<body> <ignorecase> '<p class="MsoNormal">' = "" <setmatch 1>   ;remove Outlook 0-margin paragraphs
-<body> <ignorecase> <ifmatch 1> "</p>" = "<br>" <clearmatch 1>  ;and replace with linebreak
+<body> <ignorecase> "<p class=MsoNormal>" = "" <setmatch 1>      ;remove Outlook 0-margin paragraphs
+<body> <ignorecase> '<p class="MsoNormal">' = "" <setmatch 1>    ;remove Outlook 0-margin paragraphs
+<body> <ignorecase> <ifmatch 1> "</p>" = "<br>" <clearmatch 1>   ;and replace with linebreak
 
-<body> <ignorecase> "<p class=MsoPlainText>" = "" <setmatch 2>     ;remove Outlook 0-margin paragraphs
-<body> <ignorecase> '<p class="MsoPlainText">' = "" <setmatch 2>   ;remove Outlook 0-margin paragraphs
-<body> <ignorecase> <ifmatch 2> "</p>" = "<br>" <clearmatch 2>  ;and replace with linebreak
+<body> <ignorecase> "<p class=MsoPlainText>" = "" <setmatch 2>   ;remove Outlook 0-margin paragraphs
+<body> <ignorecase> '<p class="MsoPlainText">' = "" <setmatch 2> ;remove Outlook 0-margin paragraphs
+<body> <ignorecase> <ifmatch 2> "</p>" = "<br>" <clearmatch 2>   ;and replace with linebreak
 
 ;Make scanned mail images from USPS "Informed Delivery" be left-justified,
-;by changing padding-left=x% to padding-left=0% in table cell data
+;by changing  padding-left=x%  to  padding-left=0%  in table cell data.
 <headers> "From: USPS Informed Delivery" = <nochange> <setmatch 3> ;detected a USPS Informed Delivery message
 <body> <ifmatch 3> <html td> "padding-left: " !'0' "%" = "padding-left: 0%" ;left-justified a USPS Informed Delivery image
 
-;Fix attachment names that have been truncated because they were split by Outlook into multiple lines
-;This is commented out by default, in case you are using the patched executable instead.
-;<body> '\r\nContent-Disposition: attachment;' *' ' '\r\n\tfilename="' = <fixattachment> ;fix truncated attachment name
+;Fix attachment names that have been truncated by Eudora because they were split by Outlook into multiple lines.
+;This is commented out because it renames attachment files, and you should have to explicitly opt-in to do that.
+;<body> \r\n 'Content-Disposition: attachment;' <whitespace> 'filename' = <fixattachment> ;fix truncated attachment name
+
+;An example rule that changes the directory (but not the filename) for attachments. Change the paths for your
+;situation and remove the leading semicolon. This only works if the new path is not longer than the old path,
+;except that if the filename was reconstructed by the previous rule, it can be up to 40 characters longer.
+;<body> \r\n 'Attachment Converted:' *' ' '"C:\eudora\attachments\2022\' = \r\n 'Attachment Converted:' <blankpad>  '"C:\temp\'
 
 
 ;Appendix: Here are some ideas for dealing with Emojis and other Unicode graphics.

@@ -1,6 +1,39 @@
 Eudora_fix_mbx release notes
 ----------------------------
 
+*** Version 1.5, 27 May 2022
+
+Changes to the program
+ - Add "option skipdeleted" that pre-reads the table of contents file and uses that to skip
+   fixing deleted messages that are still in the mailbox because it hasn't been compacted.
+ - Enhancements to <fixattachment> 
+     -- Handle the filename*n="xxx" continuation style from RFC 2184 when fixing
+        attachment filenames. That's too hard for a patch to Eudora.exe to do.
+     -- Don't rename files whose suggested name was on one line, since Eudora
+        handles that case. That avoids renaming files that Eudora added digits to.
+     -- Allow arbitrary spaces between Attachment Converted: and the string. 
+     -- Add 40 blanks between Attachment Converted: and our new filename string, so
+        that a subsequent rule that changes the attachment directory can make it up
+        to 40 characters longer.
+     -- Collapse multiple spaces at the start of continuation lines into a single space.
+     -- Prohibit <fixattachment> unless "option skipdeleted" is specified.
+ - Add "option skipfilenames" to not do replacements inside MIME headers with filenames,
+   because Eudora may already have created files with those exact names.
+ - Add <whitespace> as a search term to mean zero or more blank, tab, return, or linefeed characters.
+ - Add <blankpad> as a replacement term to insert zero or more blanks at the current point
+   in order to make the replacement take the full size of the matched string.
+ - Don't allow escape sequences like \r in strings, because it makes it too hard to write pathnames.
+ - Display I/O errors with a text description instead of a numeric code.
+ - Check for "replacement larger than search" only when matches are made, because <whitespace>
+   and *' ' can both allow the search part to be larger than what's in the translation rule.
+ 
+Changes to the suggested translations.txt file, which require version 1.6 of the program:
+ - Update the <fixattachment> rule. It is still a comment by default; you should need to
+   explicitly opt-in for something that renames files.
+ - Show an example rule that changes the directory for attachments.
+ - Add "option skipdeleted" as the default to avoid processing deleted messages.
+ - Add "option skipfilenames" as the default to avoid changing MIME header filenames.
+ 
 *** Version 1.4, 13 May 2022
 
 Changes to the program
