@@ -27,7 +27,7 @@ There are two kinds of remediation offered here:
    processes messages. The changes are permanent as long as you continue to use the
    patched version, and will apply to new incoming or outgoing messages.
    
-   For details on the patched version, see the "patches" subdirectory and its
+   For details on the patched versions, see the "patches" subdirectory and its
    README file.
 
 

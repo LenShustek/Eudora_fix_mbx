@@ -5,8 +5,8 @@ contains an explanation of the problem and the fix.
 Each new patched version typically also includes the previous patches. Custom versions
 could be created with different subsets of the patches, if there were a need.
 
-To use any of these, rename your existing eudora.exe file (often in C:\Program Files 
-(x86)\Qualcomm\Eudora) and use the one you find here instead. 
+To use any of these, rename your existing eudora.exe file to save it, (often in 
+C:\Program Files (x86)\Qualcomm\Eudora) and use the one you find here instead. 
 
 Patch 1: doubleletter_patch 
    Fix doubled letters that result from Eudora translating multi-byte UTF-8 characters.

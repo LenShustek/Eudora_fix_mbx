@@ -12,7 +12,7 @@ version of eudora.exe that reinstates the generation of a unique Message-Id
 header for every outgoing message. For the gory details of what I did, see 
 message-id_buxfix.txt. 
 
-The patched executable file also contains the previous fix for doubled letters 
+This patched executable file also contains the previous fix for doubled letters 
 on incoming messages. See the doubleletter_patch directory in this repository 
 for information about that. 
 
