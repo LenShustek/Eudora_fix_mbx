@@ -44,6 +44,7 @@ any of any of what follows to use either of the fixes; it's here only for your a
 
 Len Shustek
 12 May 2022
+updated  17 May 2022
 
 
 APPROACH #1: fixing the mailbox after the fact
@@ -88,6 +89,10 @@ the next line does NOT start with a blank or a tab, in which case it is probably
 header keyword. So the heuristic that seems to work, which <fixattachment> implements, is 
 that the end of the original full filename is either "; or "\r\nx, where x is not blank or 
 tab. We might discover other cases that have to be added as we see more message variations. 
+
+Here's one of those variations: 
+RFC 2184 (obsoleted by RFC 2231) describes yet another continuation method using *n= to avoid problems
+with line wrapping for long parameter values when there isn't a blank to break it at. 
 
 What we do is rename the file truncatedpathname to fullpathname, which we create by using 
 the directory path taken from the beginning of the Attachment Converted truncatedpathname, 
@@ -296,6 +301,29 @@ class.
       goto dobreak; }
         
 That is the fix that works.
+
+Unfortunately Eudora makes no attempt to decode the RFC 2184 parameter continuation method 
+using *n=, which was designed to avoid problems with line wrapping for long parameter 
+values when there isn't a blank to break it at. It is not practical to add patch code to 
+implement that, so that means our patch will work for cases like this 
+
+  filename="part1
+   part2
+   part3"
+   
+but not for cases like this
+
+  filename*0="part1"
+  filename*1="part2"
+  filename*2="part3"
+  
+or, of course, a combination of the two.
+
+  filename*0="part1
+  part2"; filename*1="part3"
+  
+So it goes.
+
 
 Ok, so how did I find the right place within the 667,142 machine-language instructions of 
 the executable program to insert a jump to the patch? By looking for unique constants that 

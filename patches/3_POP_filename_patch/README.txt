@@ -3,6 +3,8 @@ Outlook-generated email whose suggested filename for attachments is long
 and split into multiple lines. Without the patch, Eudora only uses the 
 first part of the name. 
 
+This patch changes the way Eudora processes incoming messages, so the
+filenames will be correct in the mailbox and in the attachment directory.
 For details, see truncated_filename_fixes.txt.
 
 This only fixes the easy case, where the Content-Disposition MIME header
@@ -19,5 +21,4 @@ See the other directories for details about those.
 As always, be cautious when using a patched version of any software. Backup, 
 backup, backup! 
 
-Len Shustek, 13 May 2022
-
+Len Shustek, 13 May 2022; updated 22 Jun 2022
