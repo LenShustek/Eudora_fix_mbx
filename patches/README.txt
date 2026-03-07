@@ -5,8 +5,8 @@ contains an explanation of the problem and the fix.
 Each new patched version typically also includes the previous patches. Custom versions
 could be created with different subsets of the patches, if there were a need.
 
-To use any of these, rename your existing eudora.exe file to save it, (often in 
-C:\Program Files (x86)\Qualcomm\Eudora) and use the one you find here instead. 
+To use any of these, rename your existing eudora.exe file (often in C:\Program Files 
+(x86)\Qualcomm\Eudora) and use the one you find here instead. 
 
 Patch 1: doubleletter_patch 
    Fix doubled letters that result from Eudora translating multi-byte UTF-8 characters.
@@ -31,3 +31,21 @@ the file from a command window), the second line will be something like this:
   $Patches:123
   
 which indicates that patches 1, 2, and 3 have been applied to that exe file.
+
+***** Getting an EXCEPTION ACCESS VIOLATION? Here's why:
+
+Some versions of Windows (Windows 7, and some update levels of Windows 11) prevent 
+instructions from executing out of data areas, which is where I put my patches. If you get 
+an EXCEPTION ACCESS VIOLATION after installing one of my patched eudora.exe files, you will 
+need to add Eudora as an exception to Windows DEP (Data Execution Protection).
+
+To do that from Windows 11,
+ Search (using the magnifying glass on the taskbar) for "view advanced system settings".
+ Choose "Performance/Settings", then the "Data Execution Prevention" tab.
+ Select "Turn on DEP for all programs and services except those I select".
+ Click the "Add" button, and navigate to your patched eudora.exe file.
+   (Probably at C:\Program Files (x86)\Qualcomm\Eudora\Eudora.exe)
+ Click on that .exe file, and "Open". 
+ Click "Apply", then OK.
+ You may need to restart your computer for the change to take effect.
+ 
