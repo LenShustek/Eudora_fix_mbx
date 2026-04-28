@@ -1,6 +1,21 @@
 Eudora_fix_mbx release notes
 ----------------------------
 
+*** Version 1.6, 27 April 2026
+
+- Make the matching of HTML tags for the substitution rule <html...> be case-insensitive. 
+  
+  Here's why: Although conventional best practice and the recommendation of the W3C 
+  Style Guide is for HTML tags be lower-case, I'm now seeing more instances that use 
+  upper case. That's a problem for some substitution rules in the translations.txt 
+  file used by Eudora_fix_mbx, particularly this one that changes the character set:
+     <body> <ignorecase> <html meta> "charset=utf-8" = "charset=ANSI "
+  It works for <meta...> but not for <META...> because the tag comparison is always
+  case-sensitive. That means the character set won't be changed from UTF-8 to extended 
+  ASCII, and our translations of characters elsewhere in the message won't be rendered 
+  properly by Eudora. Having the tag match be case-insensitive means it will work 
+  right without having to double the number of rules that change character sets.
+
 *** Version 1.5, 27 May 2022
 
 Changes to the program
